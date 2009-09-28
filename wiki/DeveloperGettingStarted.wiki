@@ -7,16 +7,26 @@ This document contains instructions on how to setup the development environment 
 
 = Steps =
 
-  * Check out the trunk
+  * Check out the trunk which has the url: https://purcforms.googlecode.com/svn/trunk/
 
-  * Import the four projects in eclipse. These projects are in the folders: SharedLib, FormDesigner, FormRunner and QueryBuilder.
+  * Import the four projects into eclipse. These projects are in the folders: SharedLib, FormDesigner, FormRunner and QueryBuilder.
   
 
-To run the Form Designer, under the eclipse run configurations, run the configuration called FormDesigner.
+To run the Form Designer, right click the project and select Run As, then under the eclipse run configurations, run the configuration called FormDesigner.
 
-To run the Query Builder, under the eclipse run configurations, run the configuration called QueryBuilder.
+To run the Query Builder, right click the project and select Run As, then under the eclipse run configurations, run the configuration called QueryBuilder.
 
 The Form Runner is not useful to run on its own. It needs to be embedded in another application for you to have meaningful results.
+
+
+You can run in debug mode by right clicking a project and instead of Run As, select Debug As, then select the appropriate configuration.
+
+
+To compile the Form Designer project into JavaScript, run or double click the file "FormDesigner-compile.cmd" which is in the FormDesigner folder. The output files will be under www/org.purc.purcforms.FormDesigner
+
+To compile the Query Builder project into JavaScript, run or double click the file "QueryBuilder-compile.cmd" which is in the QueryBuilder folder. The output files will be under www/org.purc.purcforms.QueryBuilder
+
+To compile the Form Runner project into JavaScript, run or double click the file "FormRunner-compile.cmd" which is in the FormRunner folder. The output files will be under www/org.purc.purcforms.FormRunner 
 
 
 Purcforms is currently using GWT version 1.5.3 and the necessary GWT files are already part of your check out.
