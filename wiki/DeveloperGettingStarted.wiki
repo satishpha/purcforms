@@ -5,12 +5,18 @@
 This document contains instructions on how to setup the development environment for purcforms in eclipse.
 
 
+
 = Setup =
 
   * Check out the trunk which has the url: https://purcforms.googlecode.com/svn/trunk/
 
   * Import the four projects into eclipse. These projects are in the folders: SharedLib, FormDesigner, FormRunner and QueryBuilder.
   
+
+Purcforms is currently using GWT version 1.5.3 and the necessary GWT files are already part of your check out.
+If you have especially a higher version of GWT as a plugin in your eclipse, you may get problems while trying to run. If that's your case, you may need to first uninstall the plugin.
+
+
 
 = Running =
 
@@ -24,6 +30,7 @@ The Form Runner is not useful to run on its own. It needs to be embedded in anot
 You can run in debug mode by right clicking a project and instead of Run As, select Debug As, then select the appropriate configuration.
 
 
+
 = Compiling to JavaScript =
 
 To compile the Form Designer project into JavaScript, run or double click the file "FormDesigner-compile.cmd" which is in the FormDesigner folder. The output files will be under www/org.purc.purcforms.FormDesigner
@@ -31,8 +38,3 @@ To compile the Form Designer project into JavaScript, run or double click the fi
 To compile the Query Builder project into JavaScript, run or double click the file "QueryBuilder-compile.cmd" which is in the QueryBuilder folder. The output files will be under www/org.purc.purcforms.QueryBuilder
 
 To compile the Form Runner project into JavaScript, run or double click the file "FormRunner-compile.cmd" which is in the FormRunner folder. The output files will be under www/org.purc.purcforms.FormRunner 
-
-
-
-Purcforms is currently using GWT version 1.5.3 and the necessary GWT files are already part of your check out.
-If you have especially a higher version of GWT as a plugin in your eclipse, you may get problems while trying to run. If that's your case, you may need to first uninstall the plugin.
