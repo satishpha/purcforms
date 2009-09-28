@@ -5,7 +5,6 @@
 This document contains instructions on how to setup the development environment for purcforms in eclipse.
 
 
-
 = Setup =
 
   * Check out the trunk which has the url: https://purcforms.googlecode.com/svn/trunk/
@@ -14,8 +13,7 @@ This document contains instructions on how to setup the development environment 
   
 
 Purcforms is currently using GWT version 1.5.3 and the necessary GWT files are already part of your check out.
-If you have especially a higher version of GWT as a plugin in your eclipse, you may get problems while trying to run. If that's your case, you may need to first uninstall the plugin.
-
+If you have any other version of GWT as a plugin in your eclipse, you may get problems while trying to run any of these projects. If that's your case, you may need to first uninstall the plugin.
 
 
 = Running =
@@ -28,7 +26,6 @@ The Form Runner is not useful to run on its own. It needs to be embedded in anot
 
 
 You can run in debug mode by right clicking a project and instead of Run As, select Debug As, then select the appropriate configuration.
-
 
 
 = Compiling to JavaScript =
