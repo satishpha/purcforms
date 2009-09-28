@@ -2,13 +2,13 @@
 
 = Introduction =
 
-This document contains instructions on how to setup the development environment for purcforms.
-Purcforms is currently using GWT version 1.5.3 and the necessary GWT files are already part of your checkout.
-If you have especially a higher version of GWT as a plugin in your eclipse, you may get problems while trying to run. If that's you case, you may need to first uninstall the plugin.
+This document contains instructions on how to setup the development environment for purcforms in eclipse.
 
-= Steps to setup the eclipse =
+
+= Steps =
 
   * Checkout the trunk
+
   * Import the three projects in eclipse. These projects are in the folders: SharedLib, FormDesigner, FormRunner and QueryBuilder.
   
 
@@ -17,3 +17,7 @@ To run the Form Designer, under the eclipse run configurations, run the configur
 To run the Query Builder, under the eclipse run configurations, run the configuration called QueryBuilder.
 
 The Form Runner is not useful to run on its own. It needs to be embedded in another application for you to have meaningful results.
+
+
+Purcforms is currently using GWT version 1.5.3 and the necessary GWT files are already part of your checkout.
+If you have especially a higher version of GWT as a plugin in your eclipse, you may get problems while trying to run. If that's you case, you may need to first uninstall the plugin.
