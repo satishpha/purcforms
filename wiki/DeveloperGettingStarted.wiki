@@ -1,4 +1,4 @@
-#summary How to get started with developing purcforms.
+#summary How to get started developing purcforms.
 
 = Introduction =
 
