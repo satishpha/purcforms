@@ -10,14 +10,13 @@ import org.purc.purcforms.client.view.ProgressDialog;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Node;
 import com.google.gwt.dom.client.NodeList;
-import com.google.gwt.event.dom.client.ChangeEvent;
-import com.google.gwt.event.dom.client.ChangeHandler;
-import com.google.gwt.event.dom.client.KeyCodes;
-import com.google.gwt.event.dom.client.KeyPressEvent;
-import com.google.gwt.event.dom.client.KeyPressHandler;
 import com.google.gwt.i18n.client.DateTimeFormat;
 import com.google.gwt.user.client.DOM;
+import com.google.gwt.user.client.ui.ChangeListener;
+import com.google.gwt.user.client.ui.KeyboardListener;
+import com.google.gwt.user.client.ui.KeyboardListenerAdapter;
 import com.google.gwt.user.client.ui.MultiWordSuggestOracle;
+import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.xml.client.Document;
@@ -36,19 +35,19 @@ public class FormUtil {
 
 	/** The date time format used in the xforms model xml. */
 	private static DateTimeFormat dateTimeSubmitFormat;
-
+	
 	/** The date time format used for display purposes. */
 	private static DateTimeFormat dateTimeDisplayFormat;
-
+	
 	/** The date format used in the xforms model xml. */
 	private static DateTimeFormat dateSubmitFormat;
-
+	
 	/** The date format used for display purposes. */
 	private static DateTimeFormat dateDisplayFormat;
-
+	
 	/** The time format used in the xforms model xml. */
 	private static DateTimeFormat timeSubmitFormat;
-
+	
 	/** The time format used for display purposes. */
 	private static DateTimeFormat timeDisplayFormat;
 
@@ -60,7 +59,7 @@ public class FormUtil {
 	private static String formDefRefreshUrlSuffix;
 	private static String externalSourceUrlSuffix;
 	private static String multimediaUrlSuffix;
-
+	
 	/** 
 	 * The url to navigate to when one closes the form designer by selecting
 	 * Close from the file menu. 
@@ -69,13 +68,13 @@ public class FormUtil {
 
 	/** The name for the formId field. */
 	private static String formIdName;
-
+	
 	/** The name for the entityId field. */
 	private static String entityIdName;
 
 	/** The form identifier. */
 	private static String formId;
-
+	
 	/** The entity identifier. eg patientId, individualId. */
 	private static String entityId;
 
@@ -90,7 +89,7 @@ public class FormUtil {
 	/** 
 	 * Flag determining whether to display the language xml tab or not.
 	 */
-	//private static boolean showLanguageTab = false;
+	private static boolean showLanguageTab = false;
 
 	/**
 	 * Flag determining whether to display the form submitted successfully message or not.
@@ -112,61 +111,59 @@ public class FormUtil {
 	//TODO These two functions need to be merged.
 	public static void allowNumericOnly(TextBox textBox, boolean allowDecimal){
 		final boolean allowDecimalPoints = allowDecimal;
-		textBox.addKeyPressHandler(new KeyPressHandler() {
-			public void onKeyPress(KeyPressEvent event) {
-				char keyCode = event.getCharCode();
-				if ((!Character.isDigit(keyCode)) && (keyCode != (char) KeyCodes.KEY_TAB)
-						&& (keyCode != (char) KeyCodes.KEY_BACKSPACE) && (keyCode != (char) KeyCodes.KEY_LEFT)
-						&& (keyCode != (char) KeyCodes.KEY_UP) && (keyCode != (char) KeyCodes.KEY_RIGHT)
-						&& (keyCode != (char) KeyCodes.KEY_DOWN)) {
+		textBox.addKeyboardListener(new KeyboardListenerAdapter() {
+			public void onKeyPress(Widget sender, char keyCode, int modifiers) {
+				if ((!Character.isDigit(keyCode)) && (keyCode != (char) KeyboardListener.KEY_TAB)
+						&& (keyCode != (char) KeyboardListener.KEY_BACKSPACE) && (keyCode != (char) KeyboardListener.KEY_LEFT)
+						&& (keyCode != (char) KeyboardListener.KEY_UP) && (keyCode != (char) KeyboardListener.KEY_RIGHT)
+						&& (keyCode != (char) KeyboardListener.KEY_DOWN)) {
 
-					if(keyCode == '.' && allowDecimalPoints && !((TextBox)event.getSource()).getText().contains("."))
+					if(keyCode == '.' && allowDecimalPoints && !((TextBox)sender).getText().contains("."))
 						return;
 
-					String text = ((TextBox) event.getSource()).getText().trim();
+					String text = ((TextBox) sender).getText().trim();
 					if(keyCode == '-'){
-						if(text.length() == 0 || ((TextBox)event.getSource()).getCursorPos() == 0)
+						if(text.length() == 0 || ((TextBox)sender).getCursorPos() == 0)
 							return;
 					}
 
-					((TextBox) event.getSource()).cancelKey(); 
+					((TextBox) sender).cancelKey(); 
 				}
 			}
 		});
 
-		textBox.addChangeHandler(new ChangeHandler(){
-			public void onChange(ChangeEvent event){
+		textBox.addChangeListener(new ChangeListener(){
+			public void onChange(Widget sender){
 				try{
 					if(allowDecimalPoints)
-						Double.parseDouble(((TextBox) event.getSource()).getText().trim());
+						Double.parseDouble(((TextBox) sender).getText().trim());
 					else
-						Integer.parseInt(((TextBox) event.getSource()).getText().trim());
+						Integer.parseInt(((TextBox) sender).getText().trim());
 				}
 				catch(Exception ex){
-					((TextBox) event.getSource()).setText(null);
+					((TextBox) sender).setText(null);
 				}
 			}
 		});
 	}
 
-	public static KeyPressHandler getAllowNumericOnlyKeyboardListener(TextBox textBox, boolean allowDecimal){
+	public static KeyboardListenerAdapter getAllowNumericOnlyKeyboardListener(TextBox textBox, boolean allowDecimal){
 		final boolean allowDecimalPoints = allowDecimal;
-		return new KeyPressHandler() {
-			public void onKeyPress(KeyPressEvent event) {
-				char keyCode = event.getCharCode();
-				if ((!Character.isDigit(keyCode)) && (keyCode != (char) KeyCodes.KEY_TAB)
-						&& (keyCode != (char) KeyCodes.KEY_BACKSPACE) && (keyCode != (char) KeyCodes.KEY_LEFT)
-						&& (keyCode != (char) KeyCodes.KEY_UP) && (keyCode != (char) KeyCodes.KEY_RIGHT)
-						&& (keyCode != (char) KeyCodes.KEY_DOWN)) {
+		return new KeyboardListenerAdapter() {
+			public void onKeyPress(Widget sender, char keyCode, int modifiers) {
+				if ((!Character.isDigit(keyCode)) && (keyCode != (char) KeyboardListener.KEY_TAB)
+						&& (keyCode != (char) KeyboardListener.KEY_BACKSPACE) && (keyCode != (char) KeyboardListener.KEY_LEFT)
+						&& (keyCode != (char) KeyboardListener.KEY_UP) && (keyCode != (char) KeyboardListener.KEY_RIGHT)
+						&& (keyCode != (char) KeyboardListener.KEY_DOWN)) {
 
-					if(keyCode == '.' && allowDecimalPoints && !((TextBox)event.getSource()).getText().contains("."))
+					if(keyCode == '.' && allowDecimalPoints && !((TextBox)sender).getText().contains("."))
 						return;
 
-					String text = ((TextBox) event.getSource()).getText().trim();
-					if((text.length() == 0 && keyCode == '-') || (keyCode == '-' && ((TextBox)event.getSource()).getCursorPos() == 0))
+					String text = ((TextBox) sender).getText().trim();
+					if((text.length() == 0 && keyCode == '-') || (keyCode == '-' && ((TextBox)sender).getCursorPos() == 0))
 						return;
 
-					((TextBox) event.getSource()).cancelKey(); 
+					((TextBox) sender).cancelKey(); 
 				}
 			}
 		};
@@ -375,28 +372,24 @@ public class FormUtil {
 			appendEntityIdAfterSubmit = false;
 		else
 			appendEntityIdAfterSubmit = !s.equals("0");
-
+		
 		s = getDivValue("showSubmitSuccessMsg");
 		if("1".equals(s) || "true".equals(s))
 			showSubmitSuccessMsg = true;
 
-		/*s = getDivValue("showLanguageTab");
+		s = getDivValue("showLanguageTab");
 		if("1".equals(s) || "true".equals(s))
-			showLanguageTab = true;*/
+			showLanguageTab = true;
 	}
 
 	public static String getDivValue(String id){
-		//RootPanel p = RootPanel.get(id);
-
-		com.google.gwt.dom.client.Element p = com.google.gwt.dom.client.Document.get().getElementById(id);
+		RootPanel p = RootPanel.get(id);
 		if(p != null){
-			NodeList<Node> nodes = p.getChildNodes();
-			if(nodes != null && nodes.getLength() > 0){
-				Node node = nodes.getItem(0);
-				String s = node.getNodeValue();
-				p.removeChild(node);
-				return s;
-			}
+			NodeList nodes = p.getElement().getChildNodes();
+			Node node = nodes.getItem(0);
+			String s = node.getNodeValue();
+			p.getElement().removeChild(node);
+			return s;
 		}
 
 		return null;
@@ -502,9 +495,9 @@ public class FormUtil {
 		return entityId;
 	}
 
-	/*public static boolean getShowLanguageTab(){
+	public static boolean getShowLanguageTab(){
 		return showLanguageTab;
-	}*/
+	}
 
 	public static String getHostPageBaseURL(){
 		//return "http://127.0.0.1:8080/openmrs/";
@@ -533,7 +526,7 @@ public class FormUtil {
 	public static boolean appendEntityIdAfterSubmit(){
 		return appendEntityIdAfterSubmit;
 	}
-
+	
 	public static boolean showSubmitSuccessMsg(){
 		return showSubmitSuccessMsg;
 	}
@@ -545,7 +538,7 @@ public class FormUtil {
 	 */
 	public static void displayException(Throwable ex){
 		FormUtil.dlg.hide(); //TODO Some how when an exception is thrown, this may stay on. So needs a fix.
-
+		
 		ex.printStackTrace();
 
 		String text = LocaleText.get("uncaughtException");
@@ -607,7 +600,7 @@ public class FormUtil {
 
 		return path;
 	}
-
+	
 	/**
 	 * Gets the xpath expression pointing to a node starting from a given parent node.
 	 * 
@@ -651,7 +644,7 @@ public class FormUtil {
 	public static String getNodeName(Element node){
 		return removePrefix(node.getNodeName());
 	}
-
+	
 	/**
 	 * Tells form runner or designer widget user that we are done displaying the widgets
 	 * and hence they can do initialization stuff if they have any.
@@ -663,7 +656,7 @@ public class FormUtil {
 	public static native void searchExternal(String key,String value,com.google.gwt.user.client.Element parentElement, com.google.gwt.user.client.Element textElement, com.google.gwt.user.client.Element valueElement) /*-{
 		return $wnd.searchExternal(key,value,parentElement.parentNode.parentNode,textElement,valueElement);
 	}-*/;
-
+	
 	/**
 	 * Checks if the current used is authenticated by the server.
 	 * This method is called every time a user tries to submit form data in non preview mode.

@@ -3,23 +3,21 @@ package org.purc.purcforms.client;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.purc.purcforms.client.locale.LocaleText;
 import org.purc.purcforms.client.model.Locale;
 import org.purc.purcforms.client.util.FormDesignerUtil;
 import org.purc.purcforms.client.util.FormUtil;
 
 import com.google.gwt.core.client.EntryPoint;
-import com.google.gwt.event.logical.shared.ResizeEvent;
-import com.google.gwt.event.logical.shared.ResizeHandler;
 import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.DeferredCommand;
 import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.WindowResizeListener;
 import com.google.gwt.user.client.ui.RootPanel;
 
 /**
  * Entry point classes define <code>onModuleLoad()</code>.
  */
-public class FormDesignerEntryPoint implements EntryPoint ,ResizeHandler{
+public class FormDesignerEntryPoint implements EntryPoint ,WindowResizeListener{
 
 	/**
 	 * Reference to the form designer widget.
@@ -31,7 +29,7 @@ public class FormDesignerEntryPoint implements EntryPoint ,ResizeHandler{
 	 */
 	public void onModuleLoad() {
 		
-		FormUtil.dlg.setText(LocaleText.get("loading"));
+		FormUtil.dlg.setText("loading");
 		FormUtil.dlg.center();
 		
 		publishJS();
@@ -51,10 +49,8 @@ public class FormDesignerEntryPoint implements EntryPoint ,ResizeHandler{
 
 		try{
 			RootPanel rootPanel = RootPanel.get("purcformsdesigner");
-			if(rootPanel == null){
-				FormUtil.dlg.hide();
+			if(rootPanel == null)
 				return;
-			}
 
 			FormUtil.setupUncaughtExceptionHandler();
 
@@ -86,8 +82,6 @@ public class FormDesignerEntryPoint implements EntryPoint ,ResizeHandler{
 			// Finally, add the designer widget to the RootPanel, so that it will be displayed.
 			rootPanel.add(designer);
 			
-			updateTabs();
-			
 			//If a form id has been specified in the html host page, load the form
 			//with that id in the designer.
 			s = FormUtil.getFormId();
@@ -100,7 +94,7 @@ public class FormDesignerEntryPoint implements EntryPoint ,ResizeHandler{
 			// have been computed by the browser.
 			DeferredCommand.addCommand(new Command() {
 				public void execute() {
-					designer.onWindowResized(Window.getClientWidth(), Window.getClientHeight());
+					onWindowResized(Window.getClientWidth(), Window.getClientHeight());
 					
 					String id = FormUtil.getFormId();
 					if(id == null || id.equals("-1"))
@@ -109,34 +103,19 @@ public class FormDesignerEntryPoint implements EntryPoint ,ResizeHandler{
 			});
 			
 			// Hook the window resize event, so that we can adjust the UI.
-			Window.addResizeHandler(this);
+			Window.addWindowResizeListener(this);
 		}
 		catch(Exception ex){
 			FormUtil.dlg.hide();
 			FormUtil.displayException(ex);
 		}
 	}
-	
-	private void updateTabs(){
-		String s = FormUtil.getDivValue("showXformsSourceTab");
-		if(!("1".equals(s) || "true".equals(s)))
-			designer.removeXformSourceTab();
-		
-		s = FormUtil.getDivValue("showLayoutXmlTab");
-		if(!("1".equals(s) || "true".equals(s)))
-			designer.removeLayoutXmlTab();
-		
-		s = FormUtil.getDivValue("showLanguageTab");
-		if(!("1".equals(s) || "true".equals(s)))
-			designer.removeLanguageTab();
-		
-		s = FormUtil.getDivValue("showModelXmlTab");
-		if(!("1".equals(s) || "true".equals(s)))
-			designer.removeModelXmlTab();
-	}
-	
-	public void onResize(ResizeEvent event){
-		designer.onWindowResized(event.getWidth(), event.getHeight());
+
+	/**
+	 * @see com.google.gwt.user.client.WindowResizeListener#onWindowResized(int, int)
+	 */
+	public void onWindowResized(int width, int height) {
+		designer.onWindowResized(width, height);
 	}
 	
 	// Set up the JS-callable signature as a global JS function.

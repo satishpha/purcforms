@@ -7,11 +7,9 @@ import org.purc.purcforms.client.locale.LocaleText;
 import org.purc.purcforms.client.model.Locale;
 import org.purc.purcforms.client.util.FormDesignerUtil;
 
-import com.google.gwt.event.dom.client.ChangeEvent;
-import com.google.gwt.event.dom.client.ChangeHandler;
-import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.ui.AbstractImagePrototype;
+import com.google.gwt.user.client.ui.ChangeListener;
+import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.HasHorizontalAlignment;
 import com.google.gwt.user.client.ui.HorizontalPanel;
@@ -19,6 +17,7 @@ import com.google.gwt.user.client.ui.ImageBundle;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.PushButton;
+import com.google.gwt.user.client.ui.Widget;
 
 /**
  * This widget is the main tool bar for the form designer.
@@ -210,9 +209,9 @@ public class Toolbar extends Composite{
 		
 		populateLocales();
 		
-		cbLanguages.addChangeHandler(new ChangeHandler(){
-			public void onChange(ChangeEvent event){
-				controller.changeLocale(((ListBox)event.getSource()).getValue(((ListBox)event.getSource()).getSelectedIndex()));
+		cbLanguages.addChangeListener(new ChangeListener(){
+			public void onChange(Widget sender){
+				controller.changeLocale(((ListBox)sender).getValue(((ListBox)sender).getSelectedIndex()));
 			}
 		});
 		
@@ -227,70 +226,68 @@ public class Toolbar extends Composite{
 	 * Setup button click event handlers.
 	 */
 	private void setupClickListeners(){
-		btnNewForm.addClickHandler(new ClickHandler(){
-			public void onClick(ClickEvent event){controller.newForm();}});
+		btnNewForm.addClickListener(new ClickListener(){
+			public void onClick(Widget widget){controller.newForm();}});
 		
-		btnOpenForm.addClickHandler(new ClickHandler(){
-			public void onClick(ClickEvent event){controller.openForm();}});
+		btnOpenForm.addClickListener(new ClickListener(){
+			public void onClick(Widget widget){controller.openForm();}});
 		
-		btnSaveForm.addClickHandler(new ClickHandler(){
-			public void onClick(ClickEvent event){controller.saveForm();}});
+		btnSaveForm.addClickListener(new ClickListener(){
+			public void onClick(Widget widget){controller.saveForm();}});
 		
-		btnAddNewItem.addClickHandler(new ClickHandler(){
-			public void onClick(ClickEvent event){controller.addNewItem();}});
+		btnAddNewItem.addClickListener(new ClickListener(){
+			public void onClick(Widget widget){controller.addNewItem();}});
 		
-		btnAddNewChildItem.addClickHandler(new ClickHandler(){
-			public void onClick(ClickEvent event){controller.addNewChildItem();}});
+		btnAddNewChildItem.addClickListener(new ClickListener(){
+			public void onClick(Widget widget){controller.addNewChildItem();}});
 		
-		btnDeleteItem.addClickHandler(new ClickHandler(){
-			public void onClick(ClickEvent event){controller.deleteSelectedItem();}});
+		btnDeleteItem.addClickListener(new ClickListener(){
+			public void onClick(Widget widget){controller.deleteSelectedItem();}});
 		
-		btnMoveItemUp.addClickHandler(new ClickHandler(){
-			public void onClick(ClickEvent event){controller.moveItemUp();}});
+		btnMoveItemUp.addClickListener(new ClickListener(){
+			public void onClick(Widget widget){controller.moveItemUp();}});
 		
-		btnMoveItemDown.addClickHandler(new ClickHandler(){
-			public void onClick(ClickEvent event){controller.moveItemDown();}});
+		btnMoveItemDown.addClickListener(new ClickListener(){
+			public void onClick(Widget widget){controller.moveItemDown();}});
 		
-		btnAlignLeft.addClickHandler(new ClickHandler(){
-			public void onClick(ClickEvent event){controller.alignLeft();}});
+		btnAlignLeft.addClickListener(new ClickListener(){
+			public void onClick(Widget widget){controller.alignLeft();}});
 		
-		btnAlignRight.addClickHandler(new ClickHandler(){
-			public void onClick(ClickEvent event){controller.alignRight();}});
+		btnAlignRight.addClickListener(new ClickListener(){
+			public void onClick(Widget widget){controller.alignRight();}});
 		
-		btnAlignTop.addClickHandler(new ClickHandler(){
-			public void onClick(ClickEvent event){controller.alignTop();}});
+		btnAlignTop.addClickListener(new ClickListener(){
+			public void onClick(Widget widget){controller.alignTop();}});
 		
-		btnAlignBottom.addClickHandler(new ClickHandler(){
-			public void onClick(ClickEvent event){controller.alignBottom();}});
+		btnAlignBottom.addClickListener(new ClickListener(){
+			public void onClick(Widget widget){controller.alignBottom();}});
 		
-		btnCut.addClickHandler(new ClickHandler(){
-			public void onClick(ClickEvent event){controller.cutItem();}});
+		btnCut.addClickListener(new ClickListener(){
+			public void onClick(Widget widget){controller.cutItem();}});
 		
-		btnCopy.addClickHandler(new ClickHandler(){
-			public void onClick(ClickEvent event){controller.copyItem();}});
+		btnCopy.addClickListener(new ClickListener(){
+			public void onClick(Widget widget){controller.copyItem();}});
 		
-		btnPaste.addClickHandler(new ClickHandler(){
-			public void onClick(ClickEvent event){controller.pasteItem();}});
+		btnPaste.addClickListener(new ClickListener(){
+			public void onClick(Widget widget){controller.pasteItem();}});
 		
-		btnSameWidth.addClickHandler(new ClickHandler(){
-			public void onClick(ClickEvent event){controller.makeSameWidth();}});
+		btnSameWidth.addClickListener(new ClickListener(){
+			public void onClick(Widget widget){controller.makeSameWidth();}});
 		
-		btnSameHeight.addClickHandler(new ClickHandler(){
-			public void onClick(ClickEvent event){controller.makeSameHeight();}});
+		btnSameHeight.addClickListener(new ClickListener(){
+			public void onClick(Widget widget){controller.makeSameHeight();}});
 		
-		btnSameSize.addClickHandler(new ClickHandler(){
-			public void onClick(ClickEvent event){controller.makeSameSize();}});
+		btnSameSize.addClickListener(new ClickListener(){
+			public void onClick(Widget widget){controller.makeSameSize();}});
 		
-		btnRefresh.addClickHandler(new ClickHandler(){
-			public void onClick(ClickEvent event){controller.refresh(this);}});
+		btnRefresh.addClickListener(new ClickListener(){
+			public void onClick(Widget widget){controller.refresh(this);}});
 	}
 	
 	/**
 	 * Populates the locale drop down with a list of locales supported by the form designer.
 	 */
-	public void populateLocales(){
-		cbLanguages.clear();
-		
+	private void populateLocales(){
 		List<Locale> locales = Context.getLocales();
 		if(locales == null)
 			return;

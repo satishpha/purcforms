@@ -23,24 +23,19 @@ import org.purc.purcforms.client.util.FormUtil;
 import org.purc.purcforms.client.widget.CompositeTreeItem;
 import org.purc.purcforms.client.widget.TreeItemWidget;
 
-import com.google.gwt.event.dom.client.MouseDownEvent;
-import com.google.gwt.event.dom.client.MouseDownHandler;
-import com.google.gwt.event.dom.client.MouseUpEvent;
-import com.google.gwt.event.dom.client.MouseUpHandler;
-import com.google.gwt.event.logical.shared.SelectionEvent;
-import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.user.client.Command;
-import com.google.gwt.user.client.DOM;
-import com.google.gwt.user.client.DeferredCommand;
-import com.google.gwt.user.client.Element;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.AbstractImagePrototype;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.MenuBar;
+import com.google.gwt.user.client.ui.MouseListenerAdapter;
 import com.google.gwt.user.client.ui.PopupPanel;
+import com.google.gwt.user.client.ui.ScrollPanel;
 import com.google.gwt.user.client.ui.Tree;
 import com.google.gwt.user.client.ui.TreeImages;
 import com.google.gwt.user.client.ui.TreeItem;
+import com.google.gwt.user.client.ui.TreeListener;
+import com.google.gwt.user.client.ui.Widget;
 
 
 /**
@@ -49,7 +44,7 @@ import com.google.gwt.user.client.ui.TreeItem;
  * @author daniel
  *
  */
-public class FormsTreeView extends Composite implements SelectionHandler<TreeItem>,IFormChangeListener,IFormActionListener{
+public class FormsTreeView extends Composite implements TreeListener,IFormChangeListener,IFormActionListener{
 
 	/**
 	 * Specifies the images that will be bundled for this Composite and specify
@@ -63,45 +58,50 @@ public class FormsTreeView extends Composite implements SelectionHandler<TreeIte
 		AbstractImagePrototype lookup();
 	}
 
+	/** The panel for scrolling when the number of displayed item is more than
+	 * can fit in the visible region.
+	 */
+	private ScrollPanel scrollPanel = new ScrollPanel();
+	
 	/** The main or root widget for displaying the list of forms and their contents
 	 * in a tree view.
 	 */
 	private Tree tree;
-
+	
 	/** The tree images. */
 	private final Images images;
-
+	
 	/** Pop up for displaying tree item context menu. */
 	private PopupPanel popup;
-
+	
 	/** The item that has been copied to the clipboard. */
 	private Object clipboardItem;
 	private boolean inCutMode = false;
-
+	
 	/** The currently selected tree item. */
 	private TreeItem item;
-
+	
 	/** Flag determining whether to set the form node as the root tree node. */
 	private boolean showFormAsRoot;
-
+	
 	/** The currently selected form. */
 	private FormDef formDef;
-
+	
 	/** List of form item selection listeners. */
 	private List<IFormSelectionListener> formSelectionListeners = new ArrayList<IFormSelectionListener>();
 
 	/** The next available form id. */
 	private int nextFormId = 0;
-
+	
 	/** The next available page id. */
 	private int nextPageId = 0;
-
+	
 	/** The next available question id. */
 	private int nextQuestionId = 0;
-
+	
 	/** The next available question option id. */
 	private int nextOptionId = 0;
-
+	
 	/** The listener to form designer global events. */
 	private IFormDesignerListener formDesignerListener;
 
@@ -119,41 +119,24 @@ public class FormsTreeView extends Composite implements SelectionHandler<TreeIte
 
 		tree = new Tree(images);
 
-		initWidget(tree);
-		FormUtil.maximizeWidget(tree);
+		scrollPanel.setWidget(tree);
+		initWidget(scrollPanel);
+		FormUtil.maximizeWidget(scrollPanel);
 
-		tree.addSelectionHandler(this);
+		tree.addTreeListener(this);
 		tree.ensureSelectedItemVisible();
 
 		//This is just for solving a wiered behaviour when one changes a node text
 		//and the click another node which gets the same text as the previously
 		//selected text. Just comment it out and you will see what happens.
-		tree.addMouseDownHandler(new MouseDownHandler(){
-			public void onMouseDown(MouseDownEvent event){
+		tree.addMouseListener(new MouseListenerAdapter(){
+			public void onMouseDown(Widget sender, int x, int y){
 				tree.setSelectedItem(tree.getSelectedItem());
-				scrollToLeft();
-			}
-		});
-
-		tree.addMouseUpHandler(new MouseUpHandler(){
-			public void onMouseUp(MouseUpEvent event){
-				scrollToLeft();
 			}
 		});
 
 		initContextMenu();
 	}
-
-
-	private void scrollToLeft(){
-		DeferredCommand.addCommand(new Command(){
-			public void execute(){
-				Element element = (Element)getParent().getParent().getParent().getElement().getChildNodes().getItem(0).getChildNodes().getItem(0);
-				DOM.setElementPropertyInt(element, "scrollLeft", 0);
-			}
-		});
-	}
-
 
 	/**
 	 * Sets the listener for form designer global events.
@@ -255,27 +238,26 @@ public class FormsTreeView extends Composite implements SelectionHandler<TreeIte
 
 
 	/**
-	 * @see com.google.gwt.event.logical.shared.SelectionHandler#onSelection(SelectionEvent)
+	 * @see com.google.gwt.user.client.ui.TreeListener#onTreeItemSelected(TreeItem)
 	 */
-	public void onSelection(SelectionEvent<TreeItem> event){
-
-		scrollToLeft();
-		
-		TreeItem item = event.getSelectedItem();
+	public void onTreeItemSelected(TreeItem item) {
 
 		//Should not call this more than once for the same selected item.
 		if(item != this.item){
 			Context.setFormDef(FormDef.getFormDef(item.getUserObject()));
 			formDef = Context.getFormDef();
-
+			
 			fireFormItemSelected(item.getUserObject());
 			this.item = item;
-			
-			//Expand if has kids such that users do not have to click the plus
-			//sign to expand. Besides, some are not even aware of that.
-			//if(item.getChildCount() > 0)
-			//	item.setState(true);
 		}
+	}
+	
+	/**
+	 * @see com.google.gwt.user.client.ui.TreeListener#onTreeItemStateChanged(TreeItem)
+	 */
+	public void onTreeItemStateChanged(TreeItem item) {
+		// TODO Auto-generated method stub
+
 	}
 
 	/**
@@ -445,7 +427,7 @@ public class FormsTreeView extends Composite implements SelectionHandler<TreeIte
 			Window.alert(LocaleText.get("selectDeleteItem"));
 			return;
 		}
-
+		
 		if(inReadOnlyMode() && !(item.getUserObject() instanceof FormDef))
 			return;
 
@@ -486,15 +468,15 @@ public class FormsTreeView extends Composite implements SelectionHandler<TreeIte
 			item.remove();
 
 			int count = tree.getItemCount();
-
+			
 			//If we have any items left, select the one which was after
 			//the one we have just removed.
 			if(count > 0){
-
+				
 				//If we have deleted the last item, select the item which was before it.
 				if(index == count)
 					index--;
-
+				
 				tree.setSelectedItem(tree.getItem(index));
 			}
 		}
@@ -517,7 +499,7 @@ public class FormsTreeView extends Composite implements SelectionHandler<TreeIte
 			if(item == tree.getItem(index))
 				return index;
 		}
-
+		
 		return 0;
 	}
 
@@ -595,11 +577,11 @@ public class FormsTreeView extends Composite implements SelectionHandler<TreeIte
 
 	public void addNewForm(){
 		int id = ++nextFormId;
-		addNewForm(LocaleText.get("newForm")+id,"new_form"+id,id);
-
+		addNewForm(LocaleText.get("newForm")+id,"newform"+id,id);
+		
 		//Automatically add a new page
 		addNewChildItem(false);
-
+		
 		//Automatically add a new question
 		addNewChildItem(false);
 	}
@@ -670,7 +652,7 @@ public class FormsTreeView extends Composite implements SelectionHandler<TreeIte
 			addFormDefItem(pageDef,item.getParentItem());
 			tree.setSelectedItem(item);
 			item.getParentItem().setState(true);
-
+			
 			//Automatically add a new question
 			addNewChildItem(false);
 		}
@@ -819,9 +801,6 @@ public class FormsTreeView extends Composite implements SelectionHandler<TreeIte
 		if(item == null)
 			return; //How can this happen?
 
-		if(item.getUserObject() != formItem)
-			return;
-
 		if(formItem instanceof QuestionDef){
 			QuestionDef questionDef = (QuestionDef)formItem;
 			item.setWidget(new TreeItemWidget(images.lookup(), questionDef.getDisplayText(),popup,this));
@@ -890,7 +869,7 @@ public class FormsTreeView extends Composite implements SelectionHandler<TreeIte
 	public void pasteItem(){
 		if(inReadOnlyMode())
 			return;
-
+		
 		//Check if we have anything in the clipboard.
 		if(clipboardItem == null)
 			return;
@@ -1152,7 +1131,7 @@ public class FormsTreeView extends Composite implements SelectionHandler<TreeIte
 		}
 	}
 
-
+	
 	/**
 	 * Selected the parent of the selected item.
 	 */
@@ -1169,7 +1148,7 @@ public class FormsTreeView extends Composite implements SelectionHandler<TreeIte
 		tree.ensureSelectedItemVisible();
 	}
 
-
+	
 	/**
 	 * Selects the child of the selected item.
 	 */
@@ -1188,7 +1167,7 @@ public class FormsTreeView extends Composite implements SelectionHandler<TreeIte
 		tree.ensureSelectedItemVisible();
 	}
 
-
+	
 	/**
 	 * Checks if the selected form is in read only mode. In read only mode
 	 * we can only change the text and help text of items.

@@ -1,4 +1,4 @@
-<module rename-to='SharedLib'>    
+<module>    
       <!-- Source paths -->  
 	  <source path="client" />
 </module>

@@ -661,7 +661,7 @@ public class FormDef implements Serializable{
 			xformsNode.removeChild(pageDef.getGroupNode());
 
 		PageDef currentPageDef;
-		List<PageDef> list = new ArrayList<PageDef>();
+		List list = new ArrayList();
 
 		while(pages.size() >= index){
 			currentPageDef = (PageDef)pages.elementAt(index-1);
@@ -694,7 +694,7 @@ public class FormDef implements Serializable{
 			xformsNode.removeChild(pageDef.getGroupNode());
 
 		PageDef currentItem; // = parent.getChild(index - 1);
-		List<PageDef> list = new ArrayList<PageDef>();
+		List list = new ArrayList();
 
 		while(pages.size() > 0 && pages.size() > index){
 			currentItem = (PageDef)pages.elementAt(index);

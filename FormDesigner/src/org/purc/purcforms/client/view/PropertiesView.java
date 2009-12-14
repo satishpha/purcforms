@@ -15,32 +15,26 @@ import org.purc.purcforms.client.util.FormDesignerUtil;
 import org.purc.purcforms.client.util.FormUtil;
 import org.purc.purcforms.client.widget.DescTemplateWidget;
 
-import com.google.gwt.event.dom.client.ChangeEvent;
-import com.google.gwt.event.dom.client.ChangeHandler;
-import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.ClickHandler;
-import com.google.gwt.event.dom.client.KeyCodes;
-import com.google.gwt.event.dom.client.KeyDownEvent;
-import com.google.gwt.event.dom.client.KeyDownHandler;
-import com.google.gwt.event.dom.client.KeyPressEvent;
-import com.google.gwt.event.dom.client.KeyPressHandler;
-import com.google.gwt.event.dom.client.KeyUpEvent;
-import com.google.gwt.event.dom.client.KeyUpHandler;
 import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.DeferredCommand;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.ui.ChangeListener;
 import com.google.gwt.user.client.ui.CheckBox;
+import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.DecoratedTabPanel;
 import com.google.gwt.user.client.ui.FlexTable;
 import com.google.gwt.user.client.ui.HasHorizontalAlignment;
 import com.google.gwt.user.client.ui.HorizontalPanel;
+import com.google.gwt.user.client.ui.KeyboardListener;
+import com.google.gwt.user.client.ui.KeyboardListenerAdapter;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
+import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.user.client.ui.FlexTable.FlexCellFormatter;
 
 
@@ -55,113 +49,115 @@ public class PropertiesView extends Composite implements IFormSelectionListener,
 
 	/** List box index for no selected data type. */
 	private static final byte DT_INDEX_NONE = -1;
-
+	
 	/** List box index for text data type. */
 	private static final byte DT_INDEX_TEXT = 0;
-
+	
 	/** List box index for number data type. */
 	private static final byte DT_INDEX_NUMBER = 1;
-
+	
 	/** List box index for decimal data type. */
 	private static final byte DT_INDEX_DECIMAL = 2;
-
+	
 	/** List box index for date data type. */
 	private static final byte DT_INDEX_DATE = 3;
-
+	
 	/** List box index for time data type. */
 	private static final byte DT_INDEX_TIME = 4;
-
+	
 	/** List box index for dateTime data type. */
 	private static final byte DT_INDEX_DATE_TIME = 5;
-
+	
 	/** List box index for boolean data type. */
 	private static final byte DT_INDEX_BOOLEAN = 6;
-
+	
 	/** List box index for single select data type. */
 	private static final byte DT_INDEX_SINGLE_SELECT = 7;
-
+	
 	/** List box index for multiple select data type. */
 	private static final byte DT_INDEX_MULTIPLE_SELECT = 8;
-
+	
 	/** List box index for repeat data type. */
 	private static final byte DT_INDEX_REPEAT = 9;
-
+	
 	/** List box index for image data type. */
 	private static final byte DT_INDEX_IMAGE = 10;
-
+	
 	/** List box index for video data type. */
 	private static final byte DT_INDEX_VIDEO = 11;
-
+	
 	/** List box index for audio data type. */
 	private static final byte DT_INDEX_AUDIO = 12;
-
+	
 	/** List box index for single select dynamic data type. */
 	private static final byte DT_INDEX_SINGLE_SELECT_DYNAMIC = 13;
-
+	
 	/** List box index for gps data type. */
 	private static final byte DT_INDEX_GPS = 14;
 
 	/** Table used for organising widgets in a table format. */
 	private FlexTable table = new FlexTable();
-
+	
 	/** Widget for displaying the list of data types. */
 	private ListBox cbDataType = new ListBox(false);
-
+	
 	/** Widget for setting the visibility property. */
 	private CheckBox chkVisible = new CheckBox();
-
+	
 	/** Widget for setting the enabled property. */
 	private CheckBox chkEnabled = new CheckBox();
-
+	
 	/** Widget for setting the locked property. */
 	private CheckBox chkLocked = new CheckBox();
-
+	
 	/** Widget for setting the required property. */
 	private CheckBox chkRequired = new CheckBox();
-
+	
 	/** Widget for setting the text property. */
 	private TextBox txtText = new TextBox();
-
+	
 	/** Widget for setting the help text property. */
 	private TextBox txtHelpText = new TextBox();
-
+	
 	/** Widget for setting the binding property. */
 	private TextBox txtBinding = new TextBox();
-
+	
 	/** Widget for setting the default value property. */
 	private TextBox txtDefaultValue = new TextBox();
-
+	
 	/** Widget for setting the description template property. */
 	private TextBox txtDescTemplate = new TextBox();
-
+	
 	/** Widget for selecting fields which define the description template. */
 	private DescTemplateWidget btnDescTemplate; // = new Button("Create/Edit");
 
 	/** The selected object which could be FormDef, PageDef, QuestionDef or OptionDef */
 	private Object propertiesObj;
-
+	
 	/** Listener to form change events. */
 	private IFormChangeListener formChangeListener;
-
+	
 	/** Widget for defining skip rules. */
 	private SkipRulesView skipRulesView = new SkipRulesView();
-
+	
 	/** Widget for defining validation rules. */
 	private ValidationRulesView validationRulesView = new ValidationRulesView();
-
+	
 	/** Widget for defining dynamic selection lists. */
 	private DynamicListsView dynamicListsView = new DynamicListsView();
-
+	
 	/** Listener to form action events. */
 	private IFormActionListener formActionListener;
 
-
+	
 	/**
 	 * Creates a new instance of the properties view widget.
 	 */
 	public PropertiesView(){
 
 		btnDescTemplate = new DescTemplateWidget(this);
+
+		//chkVisible.setStyleName("gwt-CheckBox");
 
 		table.setWidget(0, 0, new Label(LocaleText.get("text")));
 		table.setWidget(1, 0, new Label(LocaleText.get("helpText")));
@@ -172,6 +168,7 @@ public class PropertiesView extends Composite implements IFormSelectionListener,
 		table.setWidget(6, 0, new Label(LocaleText.get("locked")));
 		table.setWidget(7, 0, new Label(LocaleText.get("required")));
 		table.setWidget(8, 0, new Label(LocaleText.get("defaultValue")));
+		//table.setWidget(9, 0, new Label("Control Type"));
 		table.setWidget(9, 0, new Label(LocaleText.get("descriptionTemplate")));
 
 		table.setWidget(0, 1, txtText);
@@ -260,77 +257,73 @@ public class PropertiesView extends Composite implements IFormSelectionListener,
 	 * Sets up event listeners.
 	 */
 	private void setupEventListeners(){
-		//Check boxes.k
-		chkVisible.addClickHandler(new ClickHandler(){
-			public void onClick(ClickEvent event){
-				((QuestionDef)propertiesObj).setVisible(chkVisible.getValue() == true);
+		//Check boxes.
+		chkVisible.addClickListener(new ClickListener(){
+			public void onClick(Widget widget){
+				((QuestionDef)propertiesObj).setVisible(chkVisible.isChecked());
 				formChangeListener.onFormItemChanged(propertiesObj);
 			}
 		});
 
-		chkEnabled.addClickHandler(new ClickHandler(){
-			public void onClick(ClickEvent event){
-				((QuestionDef)propertiesObj).setEnabled(chkEnabled.getValue() == true);
+		chkEnabled.addClickListener(new ClickListener(){
+			public void onClick(Widget widget){
+				((QuestionDef)propertiesObj).setEnabled(chkEnabled.isChecked());
 				formChangeListener.onFormItemChanged(propertiesObj);
 			}
 		});
 
-		chkLocked.addClickHandler(new ClickHandler(){
-			public void onClick(ClickEvent event){
-				((QuestionDef)propertiesObj).setLocked(chkLocked.getValue() == true);
+		chkLocked.addClickListener(new ClickListener(){
+			public void onClick(Widget widget){
+				((QuestionDef)propertiesObj).setLocked(chkLocked.isChecked());
 				formChangeListener.onFormItemChanged(propertiesObj);
 			}
 		});
 
-		chkRequired.addClickHandler(new ClickHandler(){
-			public void onClick(ClickEvent event){
-				((QuestionDef)propertiesObj).setRequired(chkRequired.getValue() == true);
+		chkRequired.addClickListener(new ClickListener(){
+			public void onClick(Widget widget){
+				((QuestionDef)propertiesObj).setRequired(chkRequired.isChecked());
 				formChangeListener.onFormItemChanged(propertiesObj);
 			}
 		});
 
 		//Text boxes.
-		txtDefaultValue.addChangeHandler(new ChangeHandler(){
-			public void onChange(ChangeEvent event){
+		txtDefaultValue.addChangeListener(new ChangeListener(){
+			public void onChange(Widget sender){
 				updateDefaultValue();
 			}
 		});
-		txtDefaultValue.addKeyUpHandler(new KeyUpHandler(){
-			public void onKeyUp(KeyUpEvent event) {
+		txtDefaultValue.addKeyboardListener(new KeyboardListenerAdapter(){
+			public void onKeyUp(Widget sender, char keyCode, int modifiers) {
 				updateDefaultValue();
 			}
 		});
 
-		txtHelpText.addChangeHandler(new ChangeHandler(){
-			public void onChange(ChangeEvent event){
+		txtHelpText.addChangeListener(new ChangeListener(){
+			public void onChange(Widget sender){
 				updateHelpText();
 			}
 		});
-		txtHelpText.addKeyUpHandler(new KeyUpHandler(){
-			public void onKeyUp(KeyUpEvent event) {
+		txtHelpText.addKeyboardListener(new KeyboardListenerAdapter(){
+			public void onKeyUp(Widget sender, char keyCode, int modifiers) {
 				updateHelpText();
 			}
-		});
-
-		txtHelpText.addKeyDownHandler(new KeyDownHandler(){
-			public void onKeyDown(KeyDownEvent event) {
-				int keyCode = event.getNativeKeyCode();
-				if(keyCode == KeyCodes.KEY_ENTER || keyCode == KeyCodes.KEY_DOWN)
+			public void onKeyDown(Widget sender, char keyCode, int modifiers) {
+				if(keyCode == KeyboardListener.KEY_ENTER || keyCode == KeyboardListener.KEY_DOWN)
 					cbDataType.setFocus(true);
-				else if(keyCode == KeyCodes.KEY_UP){
+				else if(keyCode == KeyboardListener.KEY_UP){
 					txtText.setFocus(true);
 					txtText.selectAll();
 				}
 			}
 		});
 
-		txtBinding.addChangeHandler(new ChangeHandler(){
-			public void onChange(ChangeEvent event){
+		txtBinding.addChangeListener(new ChangeListener(){
+			public void onChange(Widget sender){
 				updateBinding();
 			}
 		});
-		txtBinding.addKeyUpHandler(new KeyUpHandler(){
-			public void onKeyUp(KeyUpEvent event) {
+		txtBinding.addKeyboardListener(new KeyboardListenerAdapter(){
+			public void onKeyUp(Widget sender, char keyCode, int modifiers) {
 				String s = txtBinding.getText();
 
 				s = s.replace("%", "");
@@ -346,11 +339,9 @@ public class PropertiesView extends Composite implements IFormSelectionListener,
 				txtBinding.setText(s);
 				updateBinding();
 			}
-		});
 
-		txtBinding.addKeyDownHandler(new KeyDownHandler(){
-			public void onKeyDown(KeyDownEvent event) {
-				if(event.getNativeKeyCode() == KeyCodes.KEY_UP){
+			public void onKeyDown(Widget sender, char keyCode, int modifiers) {
+				if(keyCode == KeyboardListener.KEY_UP){
 					if(cbDataType.isEnabled())
 						cbDataType.setFocus(true);
 					else{
@@ -359,49 +350,50 @@ public class PropertiesView extends Composite implements IFormSelectionListener,
 					}
 				}
 			}
-		});
 
-		txtBinding.addKeyPressHandler(new KeyPressHandler(){
-			public void onKeyPress(KeyPressEvent event) {
+			public void onKeyPress(Widget sender, char keyCode, int modifiers) {
 				if(propertiesObj instanceof PageDef){
-					if(!Character.isDigit(event.getCharCode())){
-						((TextBox) event.getSource()).cancelKey(); 
+					if(!Character.isDigit(keyCode)){
+						((TextBox) sender).cancelKey(); 
 						return;
 					}
 				}
 				else if(propertiesObj instanceof FormDef || propertiesObj instanceof QuestionDef){
-					if(((TextBox) event.getSource()).getCursorPos() == 0){
-						if(!isAllowedXmlNodeNameStartChar(event.getCharCode())){
-							((TextBox) event.getSource()).cancelKey(); 
+					if(((TextBox) sender).getCursorPos() == 0){
+						if(!isAllowedXmlNodeNameStartChar(keyCode)){
+							((TextBox) sender).cancelKey(); 
 							return;
 						}
 					}
-					else if(!isAllowedXmlNodeNameChar(event.getCharCode())){
-						((TextBox) event.getSource()).cancelKey(); 
+					else if(!isAllowedXmlNodeNameChar(keyCode)){
+						((TextBox) sender).cancelKey(); 
 						return;
 					}
 				} //else OptionDef varname can be anything
 			}
 		});
 
-		txtText.addChangeHandler(new ChangeHandler(){
-			public void onChange(ChangeEvent event){
-				String orgText = getSelObjetOriginalText();
+		txtText.addChangeListener(new ChangeListener(){
+			public void onChange(Widget sender){
 				updateText();
-				updateSelObjBinding(orgText);
-			}
-		});
-		txtText.addKeyUpHandler(new KeyUpHandler(){
-			public void onKeyUp(KeyUpEvent event) {
-				String orgText = getSelObjetOriginalText();
-				updateText();
-				updateSelObjBinding(orgText);
-			}
-		});
 
-		txtText.addKeyDownHandler(new KeyDownHandler(){
-			public void onKeyDown(KeyDownEvent event) {
-				if(event.getNativeKeyCode() == KeyCodes.KEY_ENTER || event.getNativeKeyCode() == KeyCodes.KEY_DOWN){
+				if(propertiesObj != null && Context.allowBindEdit() && !Context.isStructureReadOnly()){
+					String name = FormDesignerUtil.getXmlTagName(txtText.getText());
+					if(propertiesObj instanceof FormDef && ((FormDef)propertiesObj).getVariableName().startsWith("newform"))
+						((FormDef)propertiesObj).setVariableName(name);
+					else if(propertiesObj instanceof QuestionDef && ((QuestionDef)propertiesObj).getVariableName().startsWith("question"))
+						((QuestionDef)propertiesObj).setVariableName(name);
+					else if(propertiesObj instanceof OptionDef && ((OptionDef)propertiesObj).getVariableName().startsWith("option"))
+						((OptionDef)propertiesObj).setVariableName(name);
+				}
+			}
+		});
+		txtText.addKeyboardListener(new KeyboardListenerAdapter(){
+			public void onKeyUp(Widget sender, char keyCode, int modifiers) {
+				updateText();
+			}
+			public void onKeyDown(Widget sender, char keyCode, int modifiers) {
+				if(keyCode == KeyboardListener.KEY_ENTER || keyCode == KeyboardListener.KEY_DOWN){
 					if(txtHelpText.isEnabled())
 						txtHelpText.setFocus(true);
 					else{
@@ -412,36 +404,35 @@ public class PropertiesView extends Composite implements IFormSelectionListener,
 			}
 		});
 
-		txtDescTemplate.addChangeHandler(new ChangeHandler(){
-			public void onChange(ChangeEvent event){
+		txtDescTemplate.addChangeListener(new ChangeListener(){
+			public void onChange(Widget sender){
 				updateDescTemplate();
 			}
 		});
-		txtDescTemplate.addKeyUpHandler(new KeyUpHandler(){
-			public void onKeyUp(KeyUpEvent event) {
+		txtDescTemplate.addKeyboardListener(new KeyboardListenerAdapter(){
+			public void onKeyUp(Widget sender, char keyCode, int modifiers) {
 				updateDescTemplate();
 			}
 		});
 
 		//Combo boxes
-		cbDataType.addClickHandler(new ClickHandler(){
-			public void onClick(ClickEvent event){
+		cbDataType.addClickListener(new ClickListener(){
+			public void onClick(Widget sender){
 				updateDataType();
 			}
 		});
-		cbDataType.addChangeHandler(new ChangeHandler(){
-			public void onChange(ChangeEvent event){
+		cbDataType.addChangeListener(new ChangeListener(){
+			public void onChange(Widget sender){
 				updateDataType();
 			}
 		});
-		cbDataType.addKeyDownHandler(new KeyDownHandler(){
-			public void onKeyDown(KeyDownEvent event) {
-				int keyCode = event.getNativeEvent().getKeyCode();
-				if(keyCode == KeyCodes.KEY_ENTER || keyCode == KeyCodes.KEY_DOWN){
+		cbDataType.addKeyboardListener(new KeyboardListenerAdapter(){
+			public void onKeyDown(Widget sender, char keyCode, int modifiers) {
+				if(keyCode == KeyboardListener.KEY_ENTER || keyCode == KeyboardListener.KEY_DOWN){
 					txtBinding.setFocus(true);
 					txtBinding.selectAll();
 				}
-				else if(keyCode == KeyCodes.KEY_UP){
+				else if(keyCode == KeyboardListener.KEY_UP){
 					txtHelpText.setFocus(true);
 					txtHelpText.selectAll();
 				}
@@ -449,59 +440,6 @@ public class PropertiesView extends Composite implements IFormSelectionListener,
 		});
 	}
 
-	private String getSelObjetOriginalText(){
-		if(propertiesObj instanceof FormDef)
-			return ((FormDef)propertiesObj).getName();
-		else if(propertiesObj instanceof QuestionDef)
-			return ((QuestionDef)propertiesObj).getText();
-		else if(propertiesObj instanceof OptionDef )
-			return ((OptionDef)propertiesObj).getText();
-		return null;
-	}
-	
-	private void updateSelObjBinding(String orgText){
-		
-		if(orgText == null)
-			return;
-		
-		String orgTextDefBinding = FormDesignerUtil.getXmlTagName(getTextWithoutDecTemplate(orgText));
-		
-		if(propertiesObj != null && Context.allowBindEdit() && !Context.isStructureReadOnly()){
-			String text = getTextWithoutDecTemplate(txtText.getText().trim());
-			String name = FormDesignerUtil.getXmlTagName(text);
-			if(propertiesObj instanceof FormDef && ((FormDef)propertiesObj).getVariableName().equals(orgTextDefBinding) /*startsWith("newform")*/){
-				((FormDef)propertiesObj).setVariableName(name);
-				txtBinding.setText(name);
-			}
-			else if(propertiesObj instanceof QuestionDef && ((QuestionDef)propertiesObj).getVariableName().equals(orgTextDefBinding) /*startsWith("question")*/){
-				((QuestionDef)propertiesObj).setVariableName(name);
-				txtBinding.setText(name);
-			}
-			else if(propertiesObj instanceof OptionDef && ((OptionDef)propertiesObj).getVariableName().equals(orgTextDefBinding) /*.startsWith("option")*/){
-				((OptionDef)propertiesObj).setVariableName(name);
-				txtBinding.setText(name);
-			}
-		}
-	}
-	
-	
-	/**
-	 * Gets text without the description template, for a given text.
-	 * 
-	 * @param text the text to parse.
-	 * @return the text without the description template.
-	 */
-	private String getTextWithoutDecTemplate(String text){
-		if(text.contains("${")){
-			if(text.indexOf("}$") < text.length() - 2)
-				text = text.substring(0,text.indexOf("${")) + text.substring(text.indexOf("}$") + 2);
-			else
-				text = text.substring(0,text.indexOf("${"));
-		}
-		return text;
-	}
-	
-	
 	/**
 	 * Checks if a given character is allowed to begin an xml node name.
 	 * 
@@ -531,14 +469,14 @@ public class PropertiesView extends Composite implements IFormSelectionListener,
 	 */
 	private boolean isControlChar(char keyCode){
 		int code = keyCode;
-		return (code == KeyCodes.KEY_ALT || code == KeyCodes.KEY_BACKSPACE ||
-				code == KeyCodes.KEY_CTRL || code == KeyCodes.KEY_DELETE ||
-				code == KeyCodes.KEY_DOWN || code == KeyCodes.KEY_END ||
-				code == KeyCodes.KEY_ENTER || code == KeyCodes.KEY_ESCAPE ||
-				code == KeyCodes.KEY_HOME || code == KeyCodes.KEY_LEFT ||
-				code == KeyCodes.KEY_PAGEDOWN || code == KeyCodes.KEY_PAGEUP ||
-				code == KeyCodes.KEY_RIGHT || code == KeyCodes.KEY_SHIFT ||
-				code == KeyCodes.KEY_TAB || code == KeyCodes.KEY_UP);
+		return (code == KeyboardListener.KEY_ALT || code == KeyboardListener.KEY_BACKSPACE ||
+				code == KeyboardListener.KEY_CTRL || code == KeyboardListener.KEY_DELETE ||
+				code == KeyboardListener.KEY_DOWN || code == KeyboardListener.KEY_END ||
+				code == KeyboardListener.KEY_ENTER || code == KeyboardListener.KEY_ESCAPE ||
+				code == KeyboardListener.KEY_HOME || code == KeyboardListener.KEY_LEFT ||
+				code == KeyboardListener.KEY_PAGEDOWN || code == KeyboardListener.KEY_PAGEUP ||
+				code == KeyboardListener.KEY_RIGHT || code == KeyboardListener.KEY_SHIFT ||
+				code == KeyboardListener.KEY_TAB || code == KeyboardListener.KEY_UP);
 	}
 
 	/**
@@ -779,18 +717,18 @@ public class PropertiesView extends Composite implements IFormSelectionListener,
 	 */
 	private void setQuestionProperties(QuestionDef questionDef){
 		enableQuestionOnlyProperties(true);
-		
 		txtDescTemplate.setEnabled(false);
+		btnDescTemplate.setEnabled(false);
 
 		txtText.setText(questionDef.getText());
 		txtBinding.setText(questionDef.getVariableName());
 		txtHelpText.setText(questionDef.getHelpText());
 		txtDefaultValue.setText(questionDef.getDefaultValue());
 
-		chkVisible.setValue(questionDef.isVisible());
-		chkEnabled.setValue(questionDef.isEnabled());
-		chkLocked.setValue(questionDef.isLocked());
-		chkRequired.setValue(questionDef.isRequired());
+		chkVisible.setChecked(questionDef.isVisible());
+		chkEnabled.setChecked(questionDef.isEnabled());
+		chkLocked.setChecked(questionDef.isLocked());
+		chkRequired.setChecked(questionDef.isRequired());
 
 		setDataType(questionDef.getDataType());
 
@@ -839,8 +777,6 @@ public class PropertiesView extends Composite implements IFormSelectionListener,
 		skipRulesView.setEnabled(enable2);
 		validationRulesView.setEnabled(enable2);
 		dynamicListsView.setEnabled(enable2);
-		
-		btnDescTemplate.setEnabled(enable2);
 
 		clearProperties();
 	}
@@ -909,10 +845,10 @@ public class PropertiesView extends Composite implements IFormSelectionListener,
 	 */
 	public void clearProperties(){
 		cbDataType.setSelectedIndex(DT_INDEX_NONE);
-		chkVisible.setValue(false);
-		chkEnabled.setValue(false);
-		chkLocked.setValue(false);
-		chkRequired.setValue(false);
+		chkVisible.setChecked(false);
+		chkEnabled.setChecked(false);
+		chkLocked.setChecked(false);
+		chkRequired.setChecked(false);
 		txtDefaultValue.setText(null);
 		txtHelpText.setText(null);
 		txtText.setText(null);
@@ -945,13 +881,8 @@ public class PropertiesView extends Composite implements IFormSelectionListener,
 			setPageProperties((PageDef)formItem);
 		else if(formItem instanceof QuestionDef)
 			setQuestionProperties((QuestionDef)formItem);
-		else if(formItem instanceof OptionDef){
+		else if(formItem instanceof OptionDef)
 			setQuestionOptionProperties((OptionDef)formItem);
-			
-			//Since option bindings are not xml node names, we may allow their
-			//edits as they are not structure breaking.
-			txtBinding.setEnabled(!Context.isStructureReadOnly());
-		}
 	}
 
 	/**
@@ -985,16 +916,9 @@ public class PropertiesView extends Composite implements IFormSelectionListener,
 	 */
 	public void onItemSelected(Object sender, Object item) {
 		if(sender instanceof DescTemplateWidget){
-			if(propertiesObj instanceof QuestionDef){
-				txtText.setText(txtText.getText() + " " + txtDescTemplate.getText() + item);
-				updateText();
-				txtText.setFocus(true);
-			}
-			else{
-				txtDescTemplate.setText(txtDescTemplate.getText() + item);
-				updateDescTemplate(); //Added for IE which does not properly throw change events for the desc template textbox
-				txtDescTemplate.setFocus(true);
-			}
+			txtDescTemplate.setText(txtDescTemplate.getText() + item);
+			updateDescTemplate(); //Added for IE which does not properly throw change events for the desc template textbox
+			txtDescTemplate.setFocus(true);
 		}
 	}
 
@@ -1027,19 +951,19 @@ public class PropertiesView extends Composite implements IFormSelectionListener,
 					formActionListener.addNewItem();
 					DOM.eventPreventDefault(event);
 				}
-				else if(keyCode == KeyCodes.KEY_RIGHT){
+				else if(keyCode == KeyboardListener.KEY_RIGHT){
 					formActionListener.moveToChild();
 					DOM.eventPreventDefault(event);
 				}
-				else if(keyCode == KeyCodes.KEY_LEFT){
+				else if(keyCode == KeyboardListener.KEY_LEFT){
 					formActionListener.moveToParent();
 					DOM.eventPreventDefault(event);
 				}
-				else if(keyCode == KeyCodes.KEY_UP){
+				else if(keyCode == KeyboardListener.KEY_UP){
 					formActionListener.moveUp();
 					DOM.eventPreventDefault(event);
 				}
-				else if(keyCode == KeyCodes.KEY_DOWN){
+				else if(keyCode == KeyboardListener.KEY_DOWN){
 					formActionListener.moveDown();
 					DOM.eventPreventDefault(event);
 				}

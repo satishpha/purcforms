@@ -41,8 +41,6 @@ public class WidgetEx extends Composite{
 	public static final String WIDGET_TYPE_DATEPICKER = "DatePicker";
 	public static final String WIDGET_TYPE_IMAGE = "Picture";
 	public static final String WIDGET_TYPE_VIDEO_AUDIO = "VideoAudio";
-	public static final String WIDGET_TYPE_TIME = "TimeWidget";
-	public static final String WIDGET_TYPE_DATETIME = "DateTimeWidget";
 	
 	public static final String WIDGET_PROPERTY_TOP = "Top";
 	public static final String WIDGET_PROPERTY_LEFT = "Left";
@@ -159,7 +157,7 @@ public class WidgetEx extends Composite{
 	
 	protected void copyWidget(WidgetEx widget){
 		if(widget.widget instanceof RadioButton)
-			this.widget = new RadioButtonWidget(((RadioButtonWidget)widget.widget).getName(),((RadioButtonWidget)widget.widget).getText());
+			this.widget = new RadioButton(((RadioButton)widget.widget).getName(),((RadioButton)widget.widget).getText());
 		else if(widget.widget instanceof CheckBox)
 			this.widget = new CheckBox(((CheckBox)widget.widget).getText());
 		else if(widget.widget instanceof Button)
@@ -168,14 +166,8 @@ public class WidgetEx extends Composite{
 			this.widget = new ListBox(((ListBox)widget.widget).isMultipleSelect());
 		else if(widget.widget instanceof TextArea)
 			this.widget = new TextArea();
-		else if(widget.widget instanceof DatePickerEx)
+		else if(widget.widget instanceof DatePicker)
 			this.widget = new DatePickerWidget();
-		else if(widget.widget instanceof DateTimeWidget)
-			this.widget = new DateTimeWidget();
-		else if(widget.widget instanceof TimeWidget)
-			this.widget = new TimeWidget();
-		else if(widget.widget instanceof TextBoxWidget)
-			this.widget = new TextBoxWidget();
 		else if(widget.widget instanceof TextBox)
 			this.widget = new TextBox();
 		else if(widget.widget instanceof Label){
@@ -213,8 +205,6 @@ public class WidgetEx extends Composite{
 			return ((TextBox)widget).getText();
 		else if(widget instanceof Hyperlink)
 			return ((Hyperlink)widget).getText();
-		else if(widget instanceof DateTimeWidget)
-			return ((DateTimeWidget)widget).getText();
 		return null;
 	}
 	

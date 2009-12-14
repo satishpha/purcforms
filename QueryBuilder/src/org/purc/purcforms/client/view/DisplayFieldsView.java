@@ -11,12 +11,12 @@ import org.purc.purcforms.client.model.FormDef;
 import org.purc.purcforms.client.model.SortField;
 import org.purc.purcforms.client.sql.XmlBuilder;
 import org.purc.purcforms.client.widget.ColumnActionHyperlink;
+import org.purc.purcforms.client.widget.ConditionWidget;
 import org.purc.purcforms.client.widget.DisplayColumnWidget;
 import org.purc.purcforms.client.widget.SortColumnActionHyperlink;
 import org.purc.purcforms.client.widget.SortColumnWidget;
 
-import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Hyperlink;
@@ -70,9 +70,9 @@ public class DisplayFieldsView  extends Composite implements DisplayColumnAction
 
 		initWidget(horizontalPanel);
 
-		addColumnLink.addClickHandler(new ClickHandler(){
-			public void onClick(ClickEvent event){
-				addColumn((Widget)event.getSource());
+		addColumnLink.addClickListener(new ClickListener(){
+			public void onClick(Widget sender){
+				addColumn(sender);
 			}
 		});
 	}
@@ -104,9 +104,6 @@ public class DisplayFieldsView  extends Composite implements DisplayColumnAction
 	private void clearConditions(){
 		while(columnPanel.getWidgetCount() > 1)
 			columnPanel.remove(columnPanel.getWidget(1));
-		
-		while(sortPanel.getWidgetCount() > 1)
-			sortPanel.remove(sortPanel.getWidget(1));
 	}
 
 	public void moveColumnUp(Widget sender){

@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import org.purc.purcforms.client.Context;
 import org.purc.purcforms.client.widget.DesignGroupWidget;
 import org.purc.purcforms.client.widget.DesignWidgetWrapper;
 import org.purc.purcforms.client.widget.PaletteWidget;
@@ -149,10 +148,6 @@ public class FormDesignerDragController extends AbstractDragController{
 
 	@Override
 	public void dragEnd() {
-
-		//if(Context.getLockWidgets())
-		//	return;
-
 		assert context.finalDropController == null == (context.vetoException != null);
 		if (context.vetoException != null) {
 			if (!getBehaviorDragProxy())
@@ -176,10 +171,6 @@ public class FormDesignerDragController extends AbstractDragController{
 	}
 
 	public void dragMove() {
-
-		//if(Context.getLockWidgets())
-		//	return;
-
 		int desiredLeft = context.desiredDraggableX - boundaryOffsetX;
 		int desiredTop = context.desiredDraggableY - boundaryOffsetY;
 		if (getBehaviorConstrainedToBoundaryPanel()) {
@@ -189,10 +180,8 @@ public class FormDesignerDragController extends AbstractDragController{
 					- context.draggable.getOffsetHeight()));
 		}
 
-
-		if(!Context.getLockWidgets()){
-			if(context.draggable instanceof DesignWidgetWrapper){
-				/*DesignWidgetWrapper wrapper = (DesignWidgetWrapper)context.draggable;
+		if(context.draggable instanceof DesignWidgetWrapper){
+			/*DesignWidgetWrapper wrapper = (DesignWidgetWrapper)context.draggable;
 
 			String s = "";
 			if(wrapper.getWrappedWidget() instanceof DesignGroupWidget){
@@ -200,53 +189,51 @@ public class FormDesignerDragController extends AbstractDragController{
 				wrapper = ((DesignGroupWidget)wrapper.getWrappedWidget()).getHeaderLabel();
 			}*/
 
-				String cursor = DOM.getStyleAttribute(((DesignWidgetWrapper)context.draggable).getWrappedWidget().getElement(), "cursor");
-
-				if("default".equals(cursor) && ((DesignWidgetWrapper)context.draggable).getWrappedWidget() instanceof DesignGroupWidget){
-					//cursor = DOM.getStyleAttribute(((DesignGroupWidget)((DesignWidgetWrapper)context.draggable).getWrappedWidget()).getHeaderLabel().getElement(), "cursor");
-					Event event = DOM.eventGetCurrentEvent();
-					//cursor = ((DesignGroupWidget)((DesignWidgetWrapper)context.draggable).getWrappedWidget()).getHeaderLabel().getDesignCursor(event.getClientX(),event.getClientY(),3);
-				}
-
-				//Event event = DOM.eventGetCurrentEvent();
-				//String cursor = ((DesignWidgetWrapper)context.draggable).getDesignCursor(event.getClientX(),event.getClientY(),3);
-
-				if(cursor.equalsIgnoreCase("w-resize"))
-					incrementWidth(false);
-				else if(cursor.equalsIgnoreCase("e-resize"))
-					incrementWidth(true);
-				else if(cursor.equalsIgnoreCase("n-resize"))
-					incrementHeight(false);
-				else if(cursor.equalsIgnoreCase("s-resize"))
-					incrementHeight(true);
-				else if(cursor.equalsIgnoreCase("se-resize")){
-					incrementHeight(true);
-					incrementWidth(true);
-				}
-				else if(cursor.equalsIgnoreCase("sw-resize")){
-					incrementHeight(true);
-					incrementWidth(false);
-				}
-				else if(cursor.equalsIgnoreCase("ne-resize")){
-					incrementHeight(false);
-					incrementWidth(true);
-				}
-				else if(cursor.equalsIgnoreCase("nw-resize")){
-					incrementHeight(false);
-					incrementWidth(false);
-				}
-				else /*if(cursor.equalsIgnoreCase("move"))*/{
-					//if(!"100%".equals(((DesignWidgetWrapper)context.draggable).getWidth()))
-					DOMUtil.fastSetElementPosition(movablePanel.getElement(), desiredLeft, desiredTop);
-				}
+			String cursor = DOM.getStyleAttribute(((DesignWidgetWrapper)context.draggable).getWrappedWidget().getElement(), "cursor");
+			
+			if("default".equals(cursor) && ((DesignWidgetWrapper)context.draggable).getWrappedWidget() instanceof DesignGroupWidget){
+				//cursor = DOM.getStyleAttribute(((DesignGroupWidget)((DesignWidgetWrapper)context.draggable).getWrappedWidget()).getHeaderLabel().getElement(), "cursor");
+				Event event = DOM.eventGetCurrentEvent();
+				//cursor = ((DesignGroupWidget)((DesignWidgetWrapper)context.draggable).getWrappedWidget()).getHeaderLabel().getDesignCursor(event.getClientX(),event.getClientY(),3);
 			}
-			else{
-				//DOM.setStyleAttribute(movablePanel.getElement(),"cursor","crosshair");
-				DOM.setStyleAttribute(movablePanel.getElement(), "cursor", "pointer");
+			
+			//Event event = DOM.eventGetCurrentEvent();
+			//String cursor = ((DesignWidgetWrapper)context.draggable).getDesignCursor(event.getClientX(),event.getClientY(),3);
+				
+			if(cursor.equalsIgnoreCase("w-resize"))
+				incrementWidth(false);
+			else if(cursor.equalsIgnoreCase("e-resize"))
+				incrementWidth(true);
+			else if(cursor.equalsIgnoreCase("n-resize"))
+				incrementHeight(false);
+			else if(cursor.equalsIgnoreCase("s-resize"))
+				incrementHeight(true);
+			else if(cursor.equalsIgnoreCase("se-resize")){
+				incrementHeight(true);
+				incrementWidth(true);
+			}
+			else if(cursor.equalsIgnoreCase("sw-resize")){
+				incrementHeight(true);
+				incrementWidth(false);
+			}
+			else if(cursor.equalsIgnoreCase("ne-resize")){
+				incrementHeight(false);
+				incrementWidth(true);
+			}
+			else if(cursor.equalsIgnoreCase("nw-resize")){
+				incrementHeight(false);
+				incrementWidth(false);
+			}
+			else /*if(cursor.equalsIgnoreCase("move"))*/{
+				//if(!"100%".equals(((DesignWidgetWrapper)context.draggable).getWidth()))
 				DOMUtil.fastSetElementPosition(movablePanel.getElement(), desiredLeft, desiredTop);
 			}
 		}
-
+		else{
+			//DOM.setStyleAttribute(movablePanel.getElement(),"cursor","crosshair");
+			DOM.setStyleAttribute(movablePanel.getElement(), "cursor", "pointer");
+			DOMUtil.fastSetElementPosition(movablePanel.getElement(), desiredLeft, desiredTop);
+		}
 
 		DropController newDropController = getIntersectDropController(context.mouseX, context.mouseY);
 		if (context.dropController != newDropController) {
@@ -266,7 +253,7 @@ public class FormDesignerDragController extends AbstractDragController{
 
 	private void incrementWidth(boolean right){
 		DesignWidgetWrapper widget = (DesignWidgetWrapper)context.draggable;
-
+		
 		if(right){
 			int len = context.mouseX-widget.getLeftInt()-widget.getParent().getAbsoluteLeft();
 			widget.setWidthInt(len+3);
@@ -283,7 +270,7 @@ public class FormDesignerDragController extends AbstractDragController{
 
 	private void incrementHeight(boolean bottom){
 		DesignWidgetWrapper widget = (DesignWidgetWrapper)context.draggable;
-
+		
 		if(bottom){
 			int len = (context.mouseY-widget.getTopInt()-widget.getParent().getAbsoluteTop());
 			widget.setHeightInt(len+3);
@@ -304,9 +291,6 @@ public class FormDesignerDragController extends AbstractDragController{
 		if(context.draggable instanceof DesignWidgetWrapper && "100%".equals(((DesignWidgetWrapper)context.draggable).getWidth())){
 			context.draggable = context.draggable;//.getParent().getParent().getParent().getParent();
 		}
-
-		//if(Context.getLockWidgets())
-		//	return;
 
 		super.dragStart();
 
@@ -438,10 +422,6 @@ public class FormDesignerDragController extends AbstractDragController{
 	public void previewDragEnd() throws VetoDragException {
 		assert context.finalDropController == null;
 		assert context.vetoException == null;
-
-		//if(Context.getLockWidgets())
-		//	return;
-
 		try {
 			try {
 				// may throw VetoDragException
@@ -631,9 +611,9 @@ public class FormDesignerDragController extends AbstractDragController{
 	public List<Widget> getSelectedWidgets(){
 		return context.selectedWidgets;
 	}
-
+	
 	public boolean isWidgetSelected(Widget widget){
 		return context.selectedWidgets.contains(widget);
-
+			
 	}
 }

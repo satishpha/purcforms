@@ -2,7 +2,6 @@ package org.purc.purcforms.client.widget;
 
 import java.util.List;
 
-import org.purc.purcforms.client.Context;
 import org.purc.purcforms.client.LeftPanel.Images;
 import org.purc.purcforms.client.controller.FormDesignerDragController;
 import org.purc.purcforms.client.controller.QuestionChangeListener;
@@ -13,21 +12,8 @@ import org.purc.purcforms.client.model.QuestionDef;
 import org.purc.purcforms.client.util.FormDesignerUtil;
 import org.purc.purcforms.client.util.FormUtil;
 import org.purc.purcforms.client.xforms.XformConstants;
+import org.zenika.widget.client.datePicker.DatePicker;
 
-import com.google.gwt.event.dom.client.HasAllMouseHandlers;
-import com.google.gwt.event.dom.client.MouseDownEvent;
-import com.google.gwt.event.dom.client.MouseDownHandler;
-import com.google.gwt.event.dom.client.MouseMoveEvent;
-import com.google.gwt.event.dom.client.MouseMoveHandler;
-import com.google.gwt.event.dom.client.MouseOutEvent;
-import com.google.gwt.event.dom.client.MouseOutHandler;
-import com.google.gwt.event.dom.client.MouseOverEvent;
-import com.google.gwt.event.dom.client.MouseOverHandler;
-import com.google.gwt.event.dom.client.MouseUpEvent;
-import com.google.gwt.event.dom.client.MouseUpHandler;
-import com.google.gwt.event.dom.client.MouseWheelEvent;
-import com.google.gwt.event.dom.client.MouseWheelHandler;
-import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.http.client.URL;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Event;
@@ -39,8 +25,11 @@ import com.google.gwt.user.client.ui.Hyperlink;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ListBox;
+import com.google.gwt.user.client.ui.MouseListener;
+import com.google.gwt.user.client.ui.MouseListenerCollection;
 import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.RadioButton;
+import com.google.gwt.user.client.ui.SourcesMouseEvents;
 import com.google.gwt.user.client.ui.TabBar;
 import com.google.gwt.user.client.ui.TextArea;
 import com.google.gwt.user.client.ui.TextBox;
@@ -55,8 +44,9 @@ import com.google.gwt.xml.client.Element;
  * @author daniel
  *
  */
-public class DesignWidgetWrapper extends WidgetEx implements QuestionChangeListener, HasAllMouseHandlers{
+public class DesignWidgetWrapper extends WidgetEx implements SourcesMouseEvents, QuestionChangeListener{
 
+	private MouseListenerCollection mouseListeners;
 	private WidgetSelectionListener widgetSelectionListener;
 	private PopupPanel popup;
 	private Element layoutNode;
@@ -64,12 +54,12 @@ public class DesignWidgetWrapper extends WidgetEx implements QuestionChangeListe
 
 	public DesignWidgetWrapper(DesignWidgetWrapper designWidgetWrapper,Images images){
 		super(designWidgetWrapper);
-
+		
 		setText(designWidgetWrapper.getText());
 
 		this.widgetSelectionListener = designWidgetWrapper.widgetSelectionListener;
 		this.popup = designWidgetWrapper.popup;
-
+		
 		//TODO Make sure this does not introduce bugs. It seems logical to copy questiondef too
 		//we also need it when changing widgets from ListBox to RadioButtons
 		this.questionDef = designWidgetWrapper.questionDef;
@@ -87,7 +77,7 @@ public class DesignWidgetWrapper extends WidgetEx implements QuestionChangeListe
 		if(!(widget instanceof TabBar)){
 			panel.add(widget);
 			initWidget(panel);
-			DOM.sinkEvents(getElement(),DOM.getEventsSunk(getElement()) | Event.MOUSEEVENTS | Event.ONCONTEXTMENU | Event.KEYEVENTS | Event.ONCHANGE);
+			DOM.sinkEvents(getElement(),DOM.getEventsSunk(getElement()) | Event.MOUSEEVENTS | Event.ONCONTEXTMENU /*| Event.KEYEVENTS*/);
 		}
 	}
 
@@ -105,56 +95,24 @@ public class DesignWidgetWrapper extends WidgetEx implements QuestionChangeListe
 
 	public void onBrowserEvent(Event event) {
 		int type = DOM.eventGetType(event);
+
+		/*if(widget instanceof Label){
+			getParent().getParent().getParent().getParent().onBrowserEvent(event);
+			return;
+		}*/
+
 		if((widget instanceof Label && panel.getWidget(0) instanceof TextBox))
 			return; //Must be in label edit mode.
-		
+
 		switch (type) {
-		/*case Event.ONKEYDOWN:
-		case Event.ONKEYUP:
-		case Event.ONKEYPRESS:
-			if(widget instanceof TextBox){
-				event.preventDefault();
-				event.stopPropagation();
-				DOM.eventCancelBubble(event, true); 
-				DOM.eventPreventDefault(event);
-				return;
-			}
-			break;
-		case Event.ONCHANGE:
-			if(widget instanceof TextBox){
-				event.preventDefault();
-				event.stopPropagation();
-				DOM.eventCancelBubble(event, true); 
-				DOM.eventPreventDefault(event);
-				return;
-			}
-			break;*/
 		case Event.ONCONTEXTMENU:
 			if(popup != null){
 				if(!event.getCtrlKey())
 					widgetSelectionListener.onWidgetSelected(null,true); //clear current selection. Multiple sel is given a value of true because right click does not turn off other selections
-
-				/*event.preventDefault();
-				event.stopPropagation();
-				DOM.eventCancelBubble(event, true); 
-				DOM.eventPreventDefault(event);*/
 				
-				int ypos = event.getClientY();
-				if(Window.getClientHeight() - ypos < 150)
-					ypos = event.getClientY() - 150;
-				
-				int xpos = event.getClientX();
-				if(Window.getClientWidth() - xpos < 170)
-					xpos = event.getClientX() - 170;
-					
 				widgetSelectionListener.onWidgetSelected(this,true);
-				popup.setPopupPosition(xpos, ypos);
+				popup.setPopupPosition(event.getClientX(), event.getClientY());
 				popup.show();
-				
-				if(widget instanceof TextBox)
-					((TextBox)widget).setFocus(false);
-				else if(widget instanceof DateTimeWidget)
-					((DateTimeWidget)widget).setFocus(false);
 			}
 			break;
 		case Event.ONMOUSEDOWN:
@@ -162,7 +120,7 @@ public class DesignWidgetWrapper extends WidgetEx implements QuestionChangeListe
 			if(!(widget instanceof DesignGroupWidget) && !event.getCtrlKey())
 				widgetSelectionListener.onWidgetSelected(this,event.getCtrlKey()); //TODO verify that this does not introduce a bug
 			//The above is turned on for now because of selectedDragController.setBehaviorDragStartSensitivity(1);
-
+			
 			//When the header label of a groupbox is selected, all widgets within should be deselected.
 			if(widget instanceof Label && "100%".equals(width) && getParent().getParent() instanceof DesignGroupWidget){
 				DesignGroupWidget designGroupWidget = (DesignGroupWidget)getParent().getParent();
@@ -175,43 +133,42 @@ public class DesignWidgetWrapper extends WidgetEx implements QuestionChangeListe
 				widgetSelectionListener.onWidgetSelected(null,false);
 				widgetSelectionListener.onWidgetSelected(this,false);
 			}
-
+			
 		case Event.ONMOUSEUP:
 		case Event.ONMOUSEOVER:
 		case Event.ONMOUSEMOVE:
 		case Event.ONMOUSEOUT:
-			
-			//if (mouseListeners != null) {
-			if(widget instanceof DesignGroupWidget){
-				if(isRepeated() || !"default".equals(DOM.getStyleAttribute(widget.getElement(), "cursor")))
-					//DomEvent.fireNativeEvent(event, this, this.getElement());
-					super.onBrowserEvent(event);
-				//mouseListeners.fireMouseEvent(this, event);
+
+			if (mouseListeners != null) {
+				if(widget instanceof DesignGroupWidget){
+					if(isRepeated() || !"default".equals(DOM.getStyleAttribute(widget.getElement(), "cursor")))
+						mouseListeners.fireMouseEvent(this, event);
+				}
+				//else if(widget instanceof Label && "100%".equals(getWidth()))
+				//	mouseListeners.fireMouseEvent(getParent().getParent().getParent().getParent(), event);
+				else
+					mouseListeners.fireMouseEvent(this, event);
 			}
-			else
-				//DomEvent.fireNativeEvent(event, this, this.getElement());
-				super.onBrowserEvent(event);
+
+			/*if(type == Event.ONMOUSEDOWN){
+		        	if(!(event.getShiftKey() || event.getCtrlKey()))
+		        		widgetSelectionListener.onWidgetSelected(this);
+		        }*/
 
 			//if(type == Event.ONMOUSEDOWN || type == Event.ONMOUSEUP){
 			if(widget instanceof RadioButton)
-				((RadioButton)widget).setValue(false);
+				((RadioButton)widget).setChecked(false);
 			if(widget instanceof CheckBox)
-				((CheckBox)widget).setValue(false);
+				((CheckBox)widget).setChecked(false);
 			//if(widget instanceof ListBox)
 			//	widget.onBrowserEvent(event);//FormDesignerUtil.disableClick(widget.getElement());
 
-			if(!(widget instanceof CheckBox || widget instanceof RadioButton /*|| widget instanceof Label*/ /*|| widget instanceof Hyperlink*/)){
-				
-				String cursorval = getDesignCursor(event.getClientX(),event.getClientY(),3);
-				if(Context.getLockWidgets())
-					cursorval = "pointer";
-				
-				DOM.setStyleAttribute(widget.getElement(), "cursor", cursorval);
-				
-				if(widget instanceof DateTimeWidget)
-					((DateTimeWidget)widget).setStyle("cursor", cursorval);
-			}
+			if(!(widget instanceof CheckBox || widget instanceof RadioButton /*|| widget instanceof Label*/ /*|| widget instanceof Hyperlink*/))
+				DOM.setStyleAttribute(widget.getElement(), "cursor", getDesignCursor(event.getClientX(),event.getClientY(),3));
 
+			break;
+
+		case Event.ONKEYDOWN:
 			break;
 		}
 
@@ -225,16 +182,21 @@ public class DesignWidgetWrapper extends WidgetEx implements QuestionChangeListe
 		}
 
 		//This is to prevent ListBox drop down from expanding on mouse down.
-		if(widget instanceof ListBox && type == Event.ONMOUSEDOWN){
+		if(widget instanceof ListBox && mouseListeners != null && type == Event.ONMOUSEDOWN){
 			final com.google.gwt.user.client.Element senderElem = this.getElement();
-			int x = DOM.eventGetClientX(event)
-			- DOM.getAbsoluteLeft(senderElem)
-			+ DOM.getElementPropertyInt(senderElem, "scrollLeft")
-			+ Window.getScrollLeft();
-			int y = DOM.eventGetClientY(event)
-			- DOM.getAbsoluteTop(senderElem)
-			+ DOM.getElementPropertyInt(senderElem, "scrollTop")
-			+ Window.getScrollTop();
+		    int x = DOM.eventGetClientX(event)
+		        - DOM.getAbsoluteLeft(senderElem)
+		        + DOM.getElementPropertyInt(senderElem, "scrollLeft")
+		        + Window.getScrollLeft();
+		    int y = DOM.eventGetClientY(event)
+		        - DOM.getAbsoluteTop(senderElem)
+		        + DOM.getElementPropertyInt(senderElem, "scrollTop")
+		        + Window.getScrollTop();
+
+			mouseListeners.fireMouseMove(this, x+1, y+1);
+			
+			//if(event.getCtrlKey()) //specifically turned on for design surface view to get widget selection when ctrl is pressed
+			//	widgetSelectionListener.onWidgetSelected(this);
 		}
 	}
 
@@ -244,8 +206,6 @@ public class DesignWidgetWrapper extends WidgetEx implements QuestionChangeListe
 				storePosition();
 				panel.remove(0);
 				panel.add(txtEdit);
-
-				setLabelEditStyle(txtEdit);
 			}
 
 			String text = null;
@@ -265,64 +225,15 @@ public class DesignWidgetWrapper extends WidgetEx implements QuestionChangeListe
 			txtEdit.setText(text);
 			txtEdit.selectAll();
 			txtEdit.setFocus(true);
-
+			
 			//if(widget instanceof TabBar)
 			//	((TabBar)widget).setTabHTML(0, txtEdit.getElement().getInnerHTML());
 		}
 	}
 
-	private void setLabelEditStyle(TextBox txtEdit){
-		String value = "";
-		if(fontFamily != null && fontFamily.trim().length() > 0)
-			value = fontFamily;
-		DOM.setStyleAttribute(txtEdit.getElement(), "fontFamily", value);
-		
-		value = "";
-		if(fontSize != null && fontSize.trim().length() > 0)
-			value = fontSize;
-		DOM.setStyleAttribute(txtEdit.getElement(), "fontSize", value);
-		
-		value = "";
-		if(textDecoration != null && textDecoration.trim().length() > 0)
-			value = textDecoration;
-		DOM.setStyleAttribute(txtEdit.getElement(), "textDecoration", value);
-		
-		value = "";
-		if(textAlign != null && textAlign.trim().length() > 0)
-			value = textAlign;
-		DOM.setStyleAttribute(txtEdit.getElement(), "textAlign", value);
-		
-		value = "";
-		if(color != null && color.trim().length() > 0)
-			value = color;
-		DOM.setStyleAttribute(txtEdit.getElement(), "color", value);
-
-		value = "";
-		if(fontWeight != null && fontWeight.trim().length() > 0)
-			value = fontWeight;
-		DOM.setStyleAttribute(txtEdit.getElement(), "fontWeight", value);
-
-		value = "";
-		if(fontStyle != null && fontStyle.trim().length() > 0)
-			value = fontStyle;
-		DOM.setStyleAttribute(txtEdit.getElement(), "fontStyle", value);
-		
-		value = "";
-		if(backgroundColor != null && backgroundColor.trim().length() > 0)
-			value = backgroundColor;
-		DOM.setStyleAttribute(txtEdit.getElement(), "backgroundColor", value);
-		
-		if("100%".equals(width))
-			DOM.setStyleAttribute(txtEdit.getElement(), "width", width);
-	}
-
 	public boolean hasLabelEdidting(){
 		return (widget instanceof Label || widget instanceof Hyperlink || widget instanceof Button ||
 				widget instanceof CheckBox || widget instanceof RadioButton /*|| widget instanceof TabBar*/);
-	}
-	
-	public boolean isResizable(){
-		return !(widget instanceof Label || widget instanceof Hyperlink || widget instanceof CheckBox);
 	}
 
 	public boolean stopEditMode(){
@@ -370,6 +281,18 @@ public class DesignWidgetWrapper extends WidgetEx implements QuestionChangeListe
 		return "move";
 	}
 
+	public void addMouseListener(MouseListener listener) {
+		if (mouseListeners == null) 
+			mouseListeners = new MouseListenerCollection();
+
+		mouseListeners.add(listener);
+	}
+
+	public void removeMouseListener(MouseListener listener) {
+		if (mouseListeners != null)
+			mouseListeners.remove(listener);
+	}
+	
 	public String getText(){
 		if(widget instanceof TabBar)
 			return DesignWidgetWrapper.getTabDisplayText(((TabBar)widget).getTabHTML(((TabBar)widget).getSelectedTab()));
@@ -383,13 +306,13 @@ public class DesignWidgetWrapper extends WidgetEx implements QuestionChangeListe
 		else
 			super.setText(text);
 	}
-
+	
 	public String getTitle(){
 		if(widget instanceof DesignGroupWidget)
 			return ((DesignGroupWidget)widget).getTitle();
 		return super.getTitle();
 	}
-
+	
 	public void setTitle(String title){
 		if(widget instanceof DesignGroupWidget)
 			((DesignGroupWidget)widget).setTitle(title);
@@ -402,7 +325,7 @@ public class DesignWidgetWrapper extends WidgetEx implements QuestionChangeListe
 			html = URL.decode(html);
 		if(html.indexOf("</") > 0)
 			html = html.substring(html.indexOf(">")+1,html.indexOf("</"));
-		
+		//s = URL.decode(s);
 		return html;
 	}
 
@@ -417,12 +340,8 @@ public class DesignWidgetWrapper extends WidgetEx implements QuestionChangeListe
 			return WidgetEx.WIDGET_TYPE_LISTBOX;
 		else if(widget instanceof TextArea)
 			return WidgetEx.WIDGET_TYPE_TEXTAREA;
-		else if(widget instanceof DatePickerEx)
+		else if(widget instanceof DatePicker)
 			return WidgetEx.WIDGET_TYPE_DATEPICKER;
-		else if(widget instanceof DateTimeWidget)
-			return WidgetEx.WIDGET_TYPE_DATETIME;
-		else if(widget instanceof TimeWidget)
-			return WidgetEx.WIDGET_TYPE_TIME;
 		else if(widget instanceof TextBox)
 			return WidgetEx.WIDGET_TYPE_TEXTBOX;
 		else if(widget instanceof Label)
@@ -473,10 +392,8 @@ public class DesignWidgetWrapper extends WidgetEx implements QuestionChangeListe
 			return ((ListBox)widget).getTabIndex();
 		else if(widget instanceof TextArea)
 			return ((TextArea)widget).getTabIndex();
-		else if(widget instanceof DatePickerEx)
-			return ((DatePickerEx)widget).getTabIndex();
-		else if(widget instanceof DateTimeWidget)
-			return ((DateTimeWidget)widget).getTabIndex();
+		else if(widget instanceof DatePicker)
+			return ((DatePicker)widget).getTabIndex();
 		else if(widget instanceof TextBox)
 			return ((TextBox)widget).getTabIndex();
 		else if(widget instanceof DesignGroupWidget)
@@ -497,10 +414,8 @@ public class DesignWidgetWrapper extends WidgetEx implements QuestionChangeListe
 			((ListBox)widget).setTabIndex(index);
 		else if(widget instanceof TextArea)
 			((TextArea)widget).setTabIndex(index);
-		else if(widget instanceof DatePickerEx)
-			((DatePickerEx)widget).setTabIndex(index);
-		else if(widget instanceof DateTimeWidget)
-			((DateTimeWidget)widget).setTabIndex(index);
+		else if(widget instanceof DatePicker)
+			((DatePicker)widget).setTabIndex(index);
 		else if(widget instanceof TextBox)
 			((TextBox)widget).setTabIndex(index);
 		else if(widget instanceof DesignGroupWidget)
@@ -560,7 +475,7 @@ public class DesignWidgetWrapper extends WidgetEx implements QuestionChangeListe
 
 		if(widget instanceof DesignGroupWidget){
 			((DesignGroupWidget)widget).buildLayoutXml(node, doc);
-
+			
 			if(!isRepeated()){
 				setBinding("LEFT"+getLeft()+"TOP"+getTop());
 				node.setAttribute(WidgetEx.WIDGET_PROPERTY_BINDING, binding);
@@ -603,9 +518,9 @@ public class DesignWidgetWrapper extends WidgetEx implements QuestionChangeListe
 		String xpathRoot = xpath;
 		if(binding != null && binding.trim().length() > 0)
 			xpathRoot +=  "Binding='" + binding + "' and @";
-
+		
 		xpathRoot += WidgetEx.WIDGET_PROPERTY_WIDGETTYPE + "='" + getWidgetName()+ "'][@";
-
+			
 		buildLanguageText(doc,getText(),WidgetEx.WIDGET_PROPERTY_TEXT,parentNode,xpathRoot);
 		buildLanguageText(doc,getTitle(),WidgetEx.WIDGET_PROPERTY_HELPTEXT,parentNode,xpathRoot);
 		buildLanguageText(doc,getTop(),WidgetEx.WIDGET_PROPERTY_TOP,parentNode,xpathRoot);
@@ -617,7 +532,7 @@ public class DesignWidgetWrapper extends WidgetEx implements QuestionChangeListe
 				xpath += binding + "' and @"+ WidgetEx.WIDGET_PROPERTY_WIDGETTYPE + "='" + getWidgetName() + "']/Item[@";
 			else
 				xpath += WidgetEx.WIDGET_PROPERTY_WIDGETTYPE + "='" + getWidgetName() + "']/Item[@";
-
+			
 			((DesignGroupWidget)getWrappedWidget()).buildLanguageXml(doc,parentNode, xpath/*xpath + binding + "' and @"+ WidgetEx.WIDGET_PROPERTY_WIDGETTYPE + "='" + getWidgetName() + "']/Item[@Binding='"*/);
 		}
 	}
@@ -724,11 +639,11 @@ public class DesignWidgetWrapper extends WidgetEx implements QuestionChangeListe
 				title = questionDef.getText();
 			setTitle(title);
 		}
-
+		
 		this.questionDef = questionDef;
 		this.questionDef.addChangeListener(this);
 	}
-
+	
 	public QuestionDef getQuestionDef(){
 		return questionDef;
 	}
@@ -761,9 +676,9 @@ public class DesignWidgetWrapper extends WidgetEx implements QuestionChangeListe
 	public void onDataTypeChanged(QuestionDef sender,int dataType){
 		if(widget instanceof Label)
 			return; //We do not change labels into data input widgets.
-
-		if(dataType == QuestionDef.QTN_TYPE_DATE){
-			if(!(widget instanceof DatePickerEx)){
+		
+		if(dataType == QuestionDef.QTN_TYPE_DATE || dataType == QuestionDef.QTN_TYPE_DATE_TIME){
+			if(!(widget instanceof DatePicker)){
 				storePosition();
 				panel.remove(widget);
 				widget = new DatePickerWidget();
@@ -771,26 +686,8 @@ public class DesignWidgetWrapper extends WidgetEx implements QuestionChangeListe
 				refreshSize();
 			}
 		}
-		else if(dataType == QuestionDef.QTN_TYPE_DATE_TIME){
-			if(!(widget instanceof DateTimeWidget)){
-				storePosition();
-				panel.remove(widget);
-				widget = new DateTimeWidget();
-				panel.add(widget);
-				refreshSize();
-			}
-		}
-		else if(dataType == QuestionDef.QTN_TYPE_TIME){
-			if(!(widget instanceof TimeWidget)){
-				storePosition();
-				panel.remove(widget);
-				widget = new TimeWidget();
-				panel.add(widget);
-				refreshSize();
-			}
-		}
 		else if(dataType == QuestionDef.QTN_TYPE_TEXT || dataType == QuestionDef.QTN_TYPE_NUMERIC || dataType == QuestionDef.QTN_TYPE_DECIMAL){
-			if(( !(widget instanceof TextBox || widget instanceof TextArea) || (widget instanceof DatePickerEx)) ){
+			if(( !(widget instanceof TextBox || widget instanceof TextArea) || (widget instanceof DatePicker)) ){
 				storePosition();
 				panel.remove(widget);
 				widget = new TextBox();
@@ -863,29 +760,5 @@ public class DesignWidgetWrapper extends WidgetEx implements QuestionChangeListe
 
 	public WidgetSelectionListener getWidgetSelectionListener(){
 		return widgetSelectionListener;
-	}
-
-	public HandlerRegistration addMouseDownHandler(MouseDownHandler handler) {
-		return addDomHandler(handler, MouseDownEvent.getType());
-	}
-
-	public HandlerRegistration addMouseMoveHandler(MouseMoveHandler handler) {
-		return addDomHandler(handler, MouseMoveEvent.getType());
-	}
-
-	public HandlerRegistration addMouseOutHandler(MouseOutHandler handler) {
-		return addDomHandler(handler, MouseOutEvent.getType());
-	}
-
-	public HandlerRegistration addMouseOverHandler(MouseOverHandler handler) {
-		return addDomHandler(handler, MouseOverEvent.getType());
-	}
-
-	public HandlerRegistration addMouseUpHandler(MouseUpHandler handler) {
-		return addDomHandler(handler, MouseUpEvent.getType());
-	}
-
-	public HandlerRegistration addMouseWheelHandler(MouseWheelHandler handler) {
-		return addDomHandler(handler, MouseWheelEvent.getType());
 	}
 }

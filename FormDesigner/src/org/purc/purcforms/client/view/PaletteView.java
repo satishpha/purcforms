@@ -11,6 +11,7 @@ import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.HasHorizontalAlignment;
 import com.google.gwt.user.client.ui.RootPanel;
+import com.google.gwt.user.client.ui.ScrollPanel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 
 
@@ -25,6 +26,11 @@ public class PaletteView extends Composite {
 
 	/** The panel to contain the palette widgets. */
 	private VerticalPanel verticalPanel = new VerticalPanel();
+	
+	/** The panel to enable scrolling when the number of widgets is greater
+	 * than can be contained in the visible region of this widget.
+	 */
+	private ScrollPanel scrollPanel = new ScrollPanel();
 	
 	/** The palette images. */
 	private final Images images;
@@ -56,8 +62,6 @@ public class PaletteView extends Composite {
 		verticalPanel.add(createPaletteWidget(new HTML(LocaleText.get("textArea"))));
 		verticalPanel.add(createPaletteWidget(new HTML(LocaleText.get("button"))));
 		verticalPanel.add(createPaletteWidget(new HTML(LocaleText.get("datePicker"))));
-		verticalPanel.add(createPaletteWidget(new HTML(LocaleText.get("dateTimeWidget"))));
-		verticalPanel.add(createPaletteWidget(new HTML(LocaleText.get("timeWidget"))));
 		verticalPanel.add(createPaletteWidget(new HTML(LocaleText.get("groupBox"))));
 		verticalPanel.add(createPaletteWidget(new HTML(LocaleText.get("repeatSection"))));
 		verticalPanel.add(createPaletteWidget(new HTML(LocaleText.get("picture"))));
@@ -65,8 +69,10 @@ public class PaletteView extends Composite {
 		
 		verticalPanel.add(createPaletteWidget(new HTML(LocaleText.get("searchServer"))));
 
-		initWidget(verticalPanel);
-		FormUtil.maximizeWidget(verticalPanel);
+		scrollPanel.setWidget(verticalPanel);
+
+		initWidget(scrollPanel);
+		FormUtil.maximizeWidget(scrollPanel);
 	}
 	
 	/**

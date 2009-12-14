@@ -12,8 +12,7 @@ import org.purc.purcforms.client.util.FormUtil;
 import org.purc.purcforms.client.widget.skiprule.ConditionWidget;
 import org.purc.purcforms.client.widget.skiprule.GroupHyperlink;
 
-import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Hyperlink;
@@ -83,23 +82,23 @@ public class ValidationRulesView extends Composite implements IConditionControll
 		HorizontalPanel actionPanel = new HorizontalPanel();
 		actionPanel.setWidth("100%");
 		FormUtil.maximizeWidget(txtErrorMessage);
-		actionPanel.add(new Label(LocaleText.get("errorMessage")));
+		actionPanel.add(new Label("Error Message"));
 		actionPanel.add(txtErrorMessage);
 		actionPanel.setSpacing(10);
 		
 		verticalPanel.add(lblAction);
 		verticalPanel.add(actionPanel);
 		
-		horizontalPanel.add(new Label(LocaleText.get("when")));
+		horizontalPanel.add(new Label("When"));
 		horizontalPanel.add(groupHyperlink);
-		horizontalPanel.add(new Label(LocaleText.get("ofTheFollowingApply")));
+		horizontalPanel.add(new Label("of the following apply"));
 		verticalPanel.add(horizontalPanel);
 		
 		//verticalPanel.add(new ConditionWidget(FormDefTest.getPatientFormDef(),this));
 		verticalPanel.add(addConditionLink);
 		
-		addConditionLink.addClickHandler(new ClickHandler(){
-			public void onClick(ClickEvent event){
+		addConditionLink.addClickListener(new ClickListener(){
+			public void onClick(Widget sender){
 				addCondition();
 			}
 		});
@@ -121,14 +120,11 @@ public class ValidationRulesView extends Composite implements IConditionControll
 			verticalPanel.add(conditionWidget);
 			verticalPanel.add(addConditionLink);
 			
-			txtErrorMessage.setFocus(true);
-			
-			/*String text = txtErrorMessage.getText();
+			String text = txtErrorMessage.getText();
 			if(text != null && text.trim().length() == 0){
 				txtErrorMessage.setText(LocaleText.get("errorMessage"));
-				//txtErrorMessage.selectAll();
-				txtErrorMessage.setFocus(true);
-			}*/
+				txtErrorMessage.selectAll();
+			}
 		}
 	}
 	

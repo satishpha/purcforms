@@ -17,8 +17,6 @@ import org.purc.purcforms.client.view.DesignSurfaceView;
 import org.purc.purcforms.client.view.PreviewView;
 import org.purc.purcforms.client.view.PropertiesView;
 
-import com.google.gwt.event.logical.shared.SelectionEvent;
-import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.DeferredCommand;
@@ -28,6 +26,8 @@ import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.DecoratedTabPanel;
 import com.google.gwt.user.client.ui.ScrollPanel;
+import com.google.gwt.user.client.ui.SourcesTabEvents;
+import com.google.gwt.user.client.ui.TabListener;
 import com.google.gwt.user.client.ui.TextArea;
 import com.google.gwt.xml.client.Document;
 import com.google.gwt.xml.client.Element;
@@ -39,34 +39,28 @@ import com.google.gwt.xml.client.Element;
  * @author daniel
  *
  */
-public class CenterPanel extends Composite implements SelectionHandler<Integer>, IFormSelectionListener, SubmitListener, LayoutChangeListener{
+public class CenterPanel extends Composite implements TabListener, IFormSelectionListener, SubmitListener, LayoutChangeListener{
 
 	/** Index for the properties tab. */
-	private int SELECTED_INDEX_PROPERTIES = 0;
-
+	private static final int SELECTED_INDEX_PROPERTIES = 0;
+	
 	/** Index for xforms source xml tab. */
-	private int SELECTED_INDEX_XFORMS_SOURCE = 1;
-
+	private static final int SELECTED_INDEX_XFORMS_SOURCE = 1;
+	
 	/** Index for the design surface tab. */
-	private int SELECTED_INDEX_DESIGN_SURFACE = 2;
-
+	private static final int SELECTED_INDEX_DESIGN_SURFACE = 2;
+	
 	/** Index for the layout xml tab. */
-	private int SELECTED_INDEX_LAYOUT_XML = 3;
-
+	private static final int SELECTED_INDEX_LAYOUT_XML = 3;
+	
 	/** Index for the locale or language xml tab. */
-	private int SELECTED_INDEX_LANGUAGE_XML = 4;
-
+	private static int SELECTED_INDEX_LANGUAGE_XML = 4;
+	
 	/** Index for the preview tab. */
-	private int SELECTED_INDEX_PREVIEW = 5;
-
+	private static int SELECTED_INDEX_PREVIEW = 5;
+	
 	/** Index for the model xml tab. */
-	private int SELECTED_INDEX_MODEL_XML = 6;
-
-	private boolean showXformsSource = true;
-	private boolean showLayoutXml = true;
-	private boolean showLanguageXml = true;
-	private boolean showModelXml = true;
-
+	private static int SELECTED_INDEX_MODEL_XML = 6;
 
 	/**
 	 * Tab widget housing the contents.
@@ -90,10 +84,10 @@ public class CenterPanel extends Composite implements SelectionHandler<Integer>,
 
 	/** The text area which contains layout xml. */
 	private TextArea txtLayoutXml = new TextArea();
-
+	
 	/** The text area which contains model xml. */
 	private TextArea txtModelXml = new TextArea();
-
+	
 	/** The text area which contains locale or language xml. */
 	private TextArea txtLanguageXml = new TextArea();
 
@@ -101,23 +95,23 @@ public class CenterPanel extends Composite implements SelectionHandler<Integer>,
 	 * View used to display a form as it will look when the user is entering data in non-design mode.
 	 */
 	private PreviewView previewView;
-
+	
 	/** The form defintion object thats is currently being edited. */
 	private FormDef formDef;
-
+	
 	/** The index of the selected tab. */
 	private int selectedTabIndex = 0;	
 
 	/** Scroll panel for the design surface. */
 	private ScrollPanel scrollPanelDesign = new ScrollPanel();
-
+	
 	/** Scroll panel for the preview surface. */
 	private ScrollPanel scrollPanelPreview = new ScrollPanel();
 
 	/** Listener to form designer global events. */
 	private IFormDesignerListener formDesignerListener;
-
-
+	
+	
 	/**
 	 * Constructs a new center panel widget.
 	 * 
@@ -139,14 +133,17 @@ public class CenterPanel extends Composite implements SelectionHandler<Integer>,
 
 		tabs.selectTab(0);
 		initWidget(tabs);
-		tabs.addSelectionHandler(this);
+		tabs.addTabListener(this);
 
+		if(!FormUtil.getShowLanguageTab())
+			this.removeLanguageTab();
+		
 		Context.setCurrentMode(Context.MODE_QUESTION_PROPERTIES);
-
+		
 		previewEvents();
 	}
-
-
+	
+	
 	/**
 	 * @see com.google.gwt.user.client.DOM#addEventPreview(EventPreview)
 	 */
@@ -157,7 +154,7 @@ public class CenterPanel extends Composite implements SelectionHandler<Integer>,
 			{ 				
 				if (DOM.eventGetType(event) == Event.ONKEYDOWN) {
 					byte mode = Context.getCurrentMode();
-
+					
 					if(mode == Context.MODE_DESIGN)
 						return designSurfaceView.handleKeyBoardEvent(event);
 					else if(mode == Context.MODE_PREVIEW)
@@ -165,12 +162,11 @@ public class CenterPanel extends Composite implements SelectionHandler<Integer>,
 					else if(mode == Context.MODE_QUESTION_PROPERTIES || mode == Context.MODE_XFORMS_SOURCE)
 						return formDesignerListener.handleKeyBoardEvent(event);
 				}
-
+				
 				return true;
 			}
 		});
 	}
-
 
 	/**
 	 * Sets the listener to form item property change events.
@@ -182,34 +178,22 @@ public class CenterPanel extends Composite implements SelectionHandler<Integer>,
 	}
 
 	/**
-	 * @see com.google.gwt.event.logical.shared.SelectionHandler#onSelection(SelectionEvent)
+	 * @see com.google.gwt.user.client.ui.TabListener#onTabSelected(SourcesTabEvents, int)
 	 */
-	public void onSelection(SelectionEvent<Integer> event){
-		selectedTabIndex = event.getSelectedItem();
-
-		if(selectedTabIndex == SELECTED_INDEX_DESIGN_SURFACE)
+	public void onTabSelected(SourcesTabEvents sender, int tabIndex){
+		if(tabIndex == SELECTED_INDEX_DESIGN_SURFACE)
 			Context.setCurrentMode(Context.MODE_DESIGN);
-		else if(selectedTabIndex == SELECTED_INDEX_PREVIEW){
-			if(formDef != null && formDef.getQuestionCount() > 0 && !designSurfaceView.hasWidgets()){
-				tabs.selectTab(SELECTED_INDEX_DESIGN_SURFACE);
-				
-				DeferredCommand.addCommand(new Command(){
-					public void execute() {
-						tabs.selectTab(SELECTED_INDEX_PREVIEW);
-					}
-				});
-				return;
-			}
-			
+		else if(tabIndex == SELECTED_INDEX_PREVIEW)
 			Context.setCurrentMode(Context.MODE_PREVIEW);
-		}
-		else if(selectedTabIndex == SELECTED_INDEX_PROPERTIES)
+		else if(tabIndex == SELECTED_INDEX_PROPERTIES)
 			Context.setCurrentMode(Context.MODE_QUESTION_PROPERTIES);
-		else if(selectedTabIndex == SELECTED_INDEX_XFORMS_SOURCE)
+		else if(tabIndex == SELECTED_INDEX_XFORMS_SOURCE)
 			Context.setCurrentMode(Context.MODE_XFORMS_SOURCE);
 		else
 			Context.setCurrentMode(Context.MODE_NONE);
-
+			
+			
+		selectedTabIndex = tabIndex;
 		if(selectedTabIndex == SELECTED_INDEX_PREVIEW ){
 			if(formDef != null){
 				if(!previewView.isPreviewing())
@@ -218,14 +202,17 @@ public class CenterPanel extends Composite implements SelectionHandler<Integer>,
 					previewView.moveToFirstWidget();
 			}
 		}
-		else if(selectedTabIndex == SELECTED_INDEX_DESIGN_SURFACE){
-			if(!designSurfaceView.hasWidgets())
-				designSurfaceView.refresh();
-		}
-
-
+		else if(selectedTabIndex == SELECTED_INDEX_DESIGN_SURFACE)
+			designSurfaceView.refresh();
 		//else if(selectedTabIndex == SELECTED_INDEX_LAYOUT_XML)
 		//	txtLayoutXml.setText(designSurfaceView.getLayoutXml());
+	}
+	
+	/**
+	 * @see com.google.gwt.user.client.ui.TabListener#onBeforeTabSelected(SourcesTabEvents, int)
+	 */
+	public boolean onBeforeTabSelected(SourcesTabEvents sender, int tabIndex){
+		return true;
 	}
 
 	private void loadPreview(){
@@ -253,17 +240,11 @@ public class CenterPanel extends Composite implements SelectionHandler<Integer>,
 	private void initDesignSurface(){
 		tabs.add(scrollPanelDesign, LocaleText.get("designSurface"));
 
-		int height = Window.getClientHeight();
-		int width = Window.getClientWidth();
-		designSurfaceView.setWidth(width+"px"); //100% //1015px
-		designSurfaceView.setHeight(height+"px"); //707px
+		designSurfaceView.setWidth("100%"); //1015px
+		designSurfaceView.setHeight("700px"); //707px
 		designSurfaceView.setLayoutChangeListener(this);
 
 		scrollPanelDesign.setWidget(designSurfaceView);
-
-		tabs.selectTab(SELECTED_INDEX_DESIGN_SURFACE);
-
-		updateScrollPos();
 	}
 
 	/**
@@ -281,7 +262,7 @@ public class CenterPanel extends Composite implements SelectionHandler<Integer>,
 		tabs.add(txtLayoutXml, LocaleText.get("layoutXml"));
 		FormUtil.maximizeWidget(txtLayoutXml);
 	}
-
+	
 	/**
 	 * Sets up the language xml tab.
 	 */
@@ -350,7 +331,7 @@ public class CenterPanel extends Composite implements SelectionHandler<Integer>,
 
 			if(selectedTabIndex == SELECTED_INDEX_PREVIEW && formDef != null)
 				previewView.loadForm(formDef,designSurfaceView.getLayoutXml(),null);
-
+			
 			//This is necessary for those running in a non GWT mode to update the 
 			//scroll bars on loading the form.
 			updateScrollPos();
@@ -364,13 +345,13 @@ public class CenterPanel extends Composite implements SelectionHandler<Integer>,
 		propertiesView.onWindowResized(width, height);
 		updateScrollPos();
 	}
-
+	
 	/**
 	 * Sets the current scroll height and width of the design and preview surface.
 	 */
 	private void updateScrollPos(){
 		onVerticalResize();
-
+		
 		int height = tabs.getOffsetHeight()-48;
 		if(height > 0){
 			scrollPanelDesign.setHeight(height +"px");
@@ -418,7 +399,7 @@ public class CenterPanel extends Composite implements SelectionHandler<Integer>,
 	 * @return the xforms xml.
 	 */
 	public String getXformsSource(){
-		if(txtXformsSource.getText().length() == 0 && showXformsSource)
+		if(txtXformsSource.getText().length() == 0)
 			tabs.selectTab(SELECTED_INDEX_XFORMS_SOURCE);
 		return txtXformsSource.getText();
 	}
@@ -431,7 +412,7 @@ public class CenterPanel extends Composite implements SelectionHandler<Integer>,
 	 */
 	public void setXformsSource(String xml, boolean selectXformsTab){
 		txtXformsSource.setText(xml);
-		if(selectXformsTab && showXformsSource)
+		if(selectXformsTab)
 			tabs.selectTab(SELECTED_INDEX_XFORMS_SOURCE);
 	}
 
@@ -452,7 +433,7 @@ public class CenterPanel extends Composite implements SelectionHandler<Integer>,
 	public String getLanguageXml(){
 		return txtLanguageXml.getText();
 	}
-
+	
 	/**
 	 * Gets the inner html for the selected form page.
 	 * 
@@ -470,7 +451,7 @@ public class CenterPanel extends Composite implements SelectionHandler<Integer>,
 	 */
 	public void setLayoutXml(String xml, boolean selectTabs){
 		txtLayoutXml.setText(xml);
-		if(selectTabs && showLayoutXml)
+		if(selectTabs)
 			tabs.selectTab(SELECTED_INDEX_LAYOUT_XML);
 	}
 
@@ -538,19 +519,13 @@ public class CenterPanel extends Composite implements SelectionHandler<Integer>,
 			layoutXml = txtLayoutXml.getText();
 
 		if(layoutXml != null && layoutXml.trim().length() > 0){
-			//designSurfaceView.setLayoutXml(layoutXml,Context.inLocalizationMode() ? formDef : null); //TODO This passed null formdef in localization mode
-
-			FormDef frmDef = null;
-			if(Context.inLocalizationMode())
-				frmDef = formDef;
-			designSurfaceView.setLayoutXml(layoutXml,frmDef); //TODO This passed null formdef in localization mode
-
+			designSurfaceView.setLayoutXml(layoutXml,Context.inLocalizationMode() ? formDef : null); //TODO This passed null formdef in localization mode
 			updateScrollPos();
-
+			
 			if(selectTabs)
 				tabs.selectTab(SELECTED_INDEX_DESIGN_SURFACE);
 		}
-		else if(selectTabs && showLayoutXml)
+		else if(selectTabs)
 			tabs.selectTab(SELECTED_INDEX_LAYOUT_XML);
 
 		if(formDef != null)
@@ -602,9 +577,7 @@ public class CenterPanel extends Composite implements SelectionHandler<Integer>,
 
 	public void saveFormLayout(){
 		txtLayoutXml.setText(designSurfaceView.getLayoutXml());
-		
-		if(showLayoutXml)
-			tabs.selectTab(SELECTED_INDEX_LAYOUT_XML);
+		tabs.selectTab(SELECTED_INDEX_LAYOUT_XML);
 
 		if(formDef != null)
 			formDef.setLayoutXml(txtLayoutXml.getText());
@@ -686,18 +659,14 @@ public class CenterPanel extends Composite implements SelectionHandler<Integer>,
 	 */
 	public void onSubmit(String xml) {
 		this.txtModelXml.setText(xml);
-		
-		if(showModelXml)
-			tabs.selectTab(SELECTED_INDEX_MODEL_XML);
-		else
-			Window.alert(LocaleText.get("formSubmitSuccess"));
+		tabs.selectTab(SELECTED_INDEX_MODEL_XML);
 	}
-
+	
 	/**
 	 * @see org.purc.purcforms.client.controller.SubmitListener#onCancel()()
 	 */
 	public void onCancel(){
-
+		
 	}
 
 	/**
@@ -839,10 +808,21 @@ public class CenterPanel extends Composite implements SelectionHandler<Integer>,
 	 * Selects the language xml tab.
 	 */
 	private void selectLanguageTab(){
-		if(showLanguageXml)
+		if(tabs.getTabBar().getTabCount() == 7)
 			tabs.selectTab(SELECTED_INDEX_LANGUAGE_XML);
 	}
 
+	/**
+	 * Removes the language xml tab.
+	 */
+	public void removeLanguageTab(){
+		if(tabs.getTabBar().getTabCount() == 7){
+			tabs.remove(SELECTED_INDEX_LANGUAGE_XML);
+			--SELECTED_INDEX_PREVIEW;
+			--SELECTED_INDEX_MODEL_XML;
+		}
+	}
+	
 	/**
 	 * Sets listener to form designer global events.
 	 * 
@@ -851,7 +831,7 @@ public class CenterPanel extends Composite implements SelectionHandler<Integer>,
 	public void setFormDesignerListener(IFormDesignerListener formDesignerListener){
 		this.formDesignerListener = formDesignerListener;
 	}
-
+	
 	/**
 	 * Checks if the current selection mode allows refreshes.
 	 * 
@@ -859,58 +839,5 @@ public class CenterPanel extends Composite implements SelectionHandler<Integer>,
 	 */
 	public boolean allowsRefresh(){
 		return selectedTabIndex == SELECTED_INDEX_DESIGN_SURFACE || selectedTabIndex == SELECTED_INDEX_PREVIEW;
-	}
-
-
-	/**
-	 * Removes the language xml tab.
-	 */
-	public void removeLanguageTab(){
-		//if(tabs.getTabBar().getTabCount() == 7){
-		if(showLanguageXml){
-			tabs.remove(SELECTED_INDEX_LANGUAGE_XML);
-			
-			--SELECTED_INDEX_PREVIEW;
-			--SELECTED_INDEX_MODEL_XML;
-			
-			showLanguageXml = false;
-		}
-		//}
-	}
-
-
-	public void removeXformSourceTab(){
-		if(showXformsSource){
-			tabs.remove(SELECTED_INDEX_XFORMS_SOURCE);
-
-			--SELECTED_INDEX_DESIGN_SURFACE;
-			--SELECTED_INDEX_LAYOUT_XML;
-			--SELECTED_INDEX_LANGUAGE_XML;
-			--SELECTED_INDEX_PREVIEW;
-			--SELECTED_INDEX_MODEL_XML;
-			
-			showXformsSource = false;
-		}
-	}
-
-
-	public void removeLayoutXmlTab(){
-		if(showLayoutXml){
-			tabs.remove(SELECTED_INDEX_LAYOUT_XML);
-
-			--SELECTED_INDEX_LANGUAGE_XML;
-			--SELECTED_INDEX_PREVIEW;
-			--SELECTED_INDEX_MODEL_XML;
-			
-			showLayoutXml = false;
-		}
-	}
-
-
-	public void removeModelXmlTab(){
-		if(showModelXml){
-			tabs.remove(SELECTED_INDEX_MODEL_XML);
-			showModelXml = false;
-		}
 	}
 }

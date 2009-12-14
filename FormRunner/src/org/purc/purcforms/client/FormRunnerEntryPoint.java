@@ -33,7 +33,7 @@ public class FormRunnerEntryPoint implements EntryPoint{
 	 */
 	public void onModuleLoad() {
 		
-		FormUtil.dlg.setText(LocaleText.get("loading"));
+		FormUtil.dlg.setText("loading");
 		FormUtil.dlg.center();
 		
 		publishJS();
@@ -48,10 +48,8 @@ public class FormRunnerEntryPoint implements EntryPoint{
 	public void onModuleLoadDeffered() {
 		try{
 			RootPanel rootPanel = RootPanel.get("purcformrunner");
-			if(rootPanel == null){
-				FormUtil.dlg.hide();
+			if(rootPanel == null)
 				return;
-			}
 			
 			FormUtil.setupUncaughtExceptionHandler();	
 

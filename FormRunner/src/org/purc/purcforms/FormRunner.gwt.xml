@@ -1,4 +1,4 @@
-<module rename-to='FormRunner'>
+<module>
 
       <!-- Inherit the core Web Toolkit stuff.                        -->
       <inherits name='com.google.gwt.user.User'/>
@@ -19,9 +19,7 @@
       <entry-point class='org.purc.purcforms.client.FormRunnerEntryPoint'/>
     
          <!-- Servlets -->
-      <servlet path='/multimedia' class='org.purcforms.server.MultimediaServlet'/>
-      <servlet path='/formsave' class='org.purcforms.server.FormSaveServlet'/>
-      <servlet path='/formopen' class='org.purcforms.server.FormOpenServlet'/>
+      <servlet path='/multimedia' class='org.omevac.server.servlet.MultimediaServlet'/>
       
       <!-- Specify the application specific style sheet.              -->
       <stylesheet src='FormRunner.css' />

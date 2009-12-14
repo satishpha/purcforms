@@ -2,19 +2,16 @@ package org.purc.purcforms.client.widget;
 
 import org.purc.purcforms.client.controller.ItemSelectionListener;
 
-import com.google.gwt.event.dom.client.BlurEvent;
-import com.google.gwt.event.dom.client.BlurHandler;
-import com.google.gwt.event.dom.client.ChangeEvent;
-import com.google.gwt.event.dom.client.ChangeHandler;
-import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.ClickHandler;
-import com.google.gwt.event.dom.client.KeyCodes;
-import com.google.gwt.event.dom.client.KeyPressEvent;
-import com.google.gwt.event.dom.client.KeyPressHandler;
+import com.google.gwt.user.client.ui.ChangeListener;
+import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.Composite;
+import com.google.gwt.user.client.ui.FocusListenerAdapter;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Hyperlink;
+import com.google.gwt.user.client.ui.KeyboardListener;
+import com.google.gwt.user.client.ui.KeyboardListenerAdapter;
 import com.google.gwt.user.client.ui.TextBox;
+import com.google.gwt.user.client.ui.Widget;
 
 
 /**
@@ -43,8 +40,8 @@ public class FieldNameWidget extends Composite {
 		valueHyperlink = new Hyperlink(EMPTY_VALUE,null);
 		horizontalPanel.add(valueHyperlink);
 
-		valueHyperlink.addClickHandler(new ClickHandler(){
-			public void onClick(ClickEvent event){
+		valueHyperlink.addClickListener(new ClickListener(){
+			public void onClick(Widget sender){
 				startEdit();
 			}
 		});
@@ -63,21 +60,21 @@ public class FieldNameWidget extends Composite {
 
 	private void setupTextListeners(){
 
-		txtValue.addKeyPressHandler(new KeyPressHandler(){
-			public void onKeyPress(KeyPressEvent event) {
-				if(event.getCharCode() == KeyCodes.KEY_ENTER)
+		txtValue.addKeyboardListener(new KeyboardListenerAdapter(){
+			public void onKeyPress(Widget sender, char keyCode, int modifiers) {
+				if(keyCode == KeyboardListener.KEY_ENTER)
 					stopEdit(true);
 			}
 		});
 
-		txtValue.addBlurHandler(new BlurHandler(){
-			public void onBlur(BlurEvent event){
+		txtValue.addFocusListener(new FocusListenerAdapter(){
+			public void onLostFocus(Widget sender){
 				//stopEdit(true);
 			}
 		});
 
-		txtValue.addChangeHandler(new ChangeHandler(){
-			public void onChange(ChangeEvent event){
+		txtValue.addChangeListener(new ChangeListener(){
+			public void onChange(Widget sender){
 				stopEdit(true);
 			}
 		});
