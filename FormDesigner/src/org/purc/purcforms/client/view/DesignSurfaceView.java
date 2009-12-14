@@ -19,16 +19,11 @@ import org.purc.purcforms.client.model.QuestionDef;
 import org.purc.purcforms.client.util.FormDesignerUtil;
 import org.purc.purcforms.client.util.FormUtil;
 import org.purc.purcforms.client.widget.DatePickerWidget;
-import org.purc.purcforms.client.widget.DateTimeWidget;
 import org.purc.purcforms.client.widget.DesignGroupWidget;
 import org.purc.purcforms.client.widget.DesignWidgetWrapper;
-import org.purc.purcforms.client.widget.RadioButtonWidget;
-import org.purc.purcforms.client.widget.TimeWidget;
 import org.purc.purcforms.client.widget.WidgetEx;
 import org.purc.purcforms.client.xforms.XformConstants;
 
-import com.google.gwt.event.logical.shared.SelectionEvent;
-import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.DeferredCommand;
@@ -42,8 +37,11 @@ import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.MenuBar;
 import com.google.gwt.user.client.ui.PopupPanel;
-import com.google.gwt.user.client.ui.ScrollPanel;
+import com.google.gwt.user.client.ui.RadioButton;
+import com.google.gwt.user.client.ui.SourcesMouseEvents;
+import com.google.gwt.user.client.ui.SourcesTabEvents;
 import com.google.gwt.user.client.ui.TabBar;
+import com.google.gwt.user.client.ui.TabListener;
 import com.google.gwt.user.client.ui.TextArea;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.Widget;
@@ -60,7 +58,7 @@ import com.google.gwt.xml.client.XMLParser;
  * @author daniel
  *
  */
-public class DesignSurfaceView extends DesignGroupView implements SelectionHandler<Integer>,DragDropListener,IWidgetPopupMenuListener{
+public class DesignSurfaceView extends DesignGroupView implements /*WindowResizeListener,*/ TabListener,DragDropListener,SourcesMouseEvents,IWidgetPopupMenuListener{
 
 	/** Height in pixels of the selected page. */
 	private String sHeight = "100%"; //"100%";
@@ -97,12 +95,10 @@ public class DesignSurfaceView extends DesignGroupView implements SelectionHandl
 		tabs.selectTab(0);
 
 		initWidget(tabs);
-		tabs.addSelectionHandler(this);
+		tabs.addTabListener(this);
 
 		DOM.sinkEvents(getElement(),DOM.getEventsSunk(getElement()) | Event.MOUSEEVENTS | Event.KEYEVENTS);
 
-		setupPopup();
-		
 		widgetPopup = new PopupPanel(true,true);
 		MenuBar menuBar = new MenuBar(true);
 		menuBar.addItem(FormDesignerUtil.createHeaderHTML(images.cut(),LocaleText.get("cut")),true,new Command(){
@@ -115,16 +111,15 @@ public class DesignSurfaceView extends DesignGroupView implements SelectionHandl
 			public void execute() {widgetPopup.hide(); deleteWidgets();}});
 
 		menuBar.addSeparator(); //LocaleText.get("??????")?????????
-		menuBar.addItem(FormDesignerUtil.createHeaderHTML(images.add(),LocaleText.get("changeWidgetH")),true, new Command(){
+		menuBar.addItem(FormDesignerUtil.createHeaderHTML(images.add(),"Change Widget H"),true, new Command(){
 			public void execute() {widgetPopup.hide(); changeWidget(false);}});
 
-		menuBar.addItem(FormDesignerUtil.createHeaderHTML(images.add(),LocaleText.get("changeWidgetV")),true, new Command(){
+		menuBar.addItem(FormDesignerUtil.createHeaderHTML(images.add(),"Change Widget V"),true, new Command(){
 			public void execute() {widgetPopup.hide(); changeWidget(true);}});
 
-		//menuBar.addSeparator();
-		//menuBar.addItem(lockWidgetsMenu);
-		
 		widgetPopup.setWidget(menuBar);
+
+		setupPopup();
 
 		rubberBand.addStyleName("rubberBand");
 
@@ -184,6 +179,7 @@ public class DesignSurfaceView extends DesignGroupView implements SelectionHandl
 		//This is needed for IE
 		DeferredCommand.addCommand(new Command() {
 			public void execute() {
+				//onWindowResized(Window.getClientWidth(), Window.getClientHeight());
 				setHeight(getHeight());
 			}
 		});
@@ -222,12 +218,6 @@ public class DesignSurfaceView extends DesignGroupView implements SelectionHandl
 
 		addControlMenu.addItem(FormDesignerUtil.createHeaderHTML(images.addchild(),LocaleText.get("datePicker")),true,new Command(){
 			public void execute() {popup.hide(); addNewDatePicker(true);}});
-		
-		addControlMenu.addItem(FormDesignerUtil.createHeaderHTML(images.addchild(),LocaleText.get("dateTimeWidget")),true,new Command(){
-			public void execute() {popup.hide(); addNewDateTimeWidget(true);}});
-		
-		addControlMenu.addItem(FormDesignerUtil.createHeaderHTML(images.addchild(),LocaleText.get("timeWidget")),true,new Command(){
-			public void execute() {popup.hide(); addNewTimeWidget(true);}});
 
 		addControlMenu.addItem(FormDesignerUtil.createHeaderHTML(images.addchild(),LocaleText.get("groupBox")),true,new Command(){
 			public void execute() {popup.hide(); addNewGroupBox(true);}});
@@ -295,9 +285,6 @@ public class DesignSurfaceView extends DesignGroupView implements SelectionHandl
 		//}
 
 		menuBar.addSeparator();	
-		lockWidgetsMenu = menuBar.addItem(FormDesignerUtil.createHeaderHTML(images.add(),LocaleText.get("lockWidgets")),true, new Command(){
-			public void execute() {popup.hide(); lockWidgets();}});
-		
 		menuBar.addItem(FormDesignerUtil.createHeaderHTML(images.add(),LocaleText.get("selectAll")),true, new Command(){
 			public void execute() {popup.hide(); selectAll();}});
 
@@ -339,13 +326,19 @@ public class DesignSurfaceView extends DesignGroupView implements SelectionHandl
 			}
 		});
 	}
-	
 
 	/**
-	 * @see com.google.gwt.event.logical.shared.SelectionHandler#onSelection(SelectionEvent)
+	 * @see com.google.gwt.user.client.ui.TabListener#onBeforeTabSelected(SourcesTabEvents, int)
 	 */
-	public void onSelection(SelectionEvent<Integer> event){
-		selectedTabIndex = event.getSelectedItem();
+	public boolean onBeforeTabSelected(SourcesTabEvents sender, int tabIndex){
+		return true;
+	}
+
+	/**
+	 * @see com.google.gwt.user.client.ui.TabListener#onTabSelected(SourcesTabEvents, int)
+	 */
+	public void onTabSelected(SourcesTabEvents sender, int tabIndex){
+		selectedTabIndex = tabIndex;
 
 		selectedDragController = dragControllers.elementAt(selectedTabIndex);
 		selectedPanel = selectedDragController.getBoundaryPanel();
@@ -563,7 +556,7 @@ public class DesignSurfaceView extends DesignGroupView implements SelectionHandl
 
 		Widget widget = null;
 		if(s.equalsIgnoreCase(WidgetEx.WIDGET_TYPE_RADIOBUTTON))
-			widget = new RadioButtonWidget(node.getAttribute(WidgetEx.WIDGET_PROPERTY_PARENTBINDING),node.getAttribute(WidgetEx.WIDGET_PROPERTY_TEXT));
+			widget = new RadioButton(node.getAttribute(WidgetEx.WIDGET_PROPERTY_PARENTBINDING),node.getAttribute(WidgetEx.WIDGET_PROPERTY_TEXT));
 		else if(s.equalsIgnoreCase(WidgetEx.WIDGET_TYPE_CHECKBOX))
 			widget = new CheckBox(node.getAttribute(WidgetEx.WIDGET_PROPERTY_TEXT));
 		else if(s.equalsIgnoreCase(WidgetEx.WIDGET_TYPE_BUTTON))
@@ -578,10 +571,6 @@ public class DesignSurfaceView extends DesignGroupView implements SelectionHandl
 			widget = new Hyperlink(node.getAttribute(WidgetEx.WIDGET_PROPERTY_TEXT),null);
 		else if(s.equalsIgnoreCase(WidgetEx.WIDGET_TYPE_DATEPICKER))
 			widget = new DatePickerWidget();
-		else if(s.equalsIgnoreCase(WidgetEx.WIDGET_TYPE_TIME))
-			widget = new TimeWidget();
-		else if(s.equalsIgnoreCase(WidgetEx.WIDGET_TYPE_DATETIME))
-			widget = new DateTimeWidget();
 		else if(s.equalsIgnoreCase(WidgetEx.WIDGET_TYPE_TEXTBOX))
 			widget = new TextBox();
 		else if(s.equalsIgnoreCase(WidgetEx.WIDGET_TYPE_LABEL))
@@ -774,7 +763,7 @@ public class DesignSurfaceView extends DesignGroupView implements SelectionHandl
 	 * @param select set to true to select all the created widgets.
 	 */
 	private void loadQuestions(List<QuestionDef> questions, int startY, int tabIndex, boolean submitCancelBtns, boolean select){
-		int maxX = 0, max = 999999; //FormUtil.convertDimensionToInt(sHeight) - 0 + 150; //40; No longer adding submit button on every page
+		int max = 999999; //FormUtil.convertDimensionToInt(sHeight) - 0 + 150; //40; No longer adding submit button on every page
 		x = 20;
 		y = startY;
 
@@ -786,9 +775,6 @@ public class DesignSurfaceView extends DesignGroupView implements SelectionHandl
 			QuestionDef questionDef = (QuestionDef)questions.get(i);
 			int type = questionDef.getDataType();
 
-			if(type == QuestionDef.QTN_TYPE_REPEAT && questionDef.getRepeatQtnsDef().getQuestions() == null)
-				continue;
-			
 			if(!(type == QuestionDef.QTN_TYPE_VIDEO || type == QuestionDef.QTN_TYPE_AUDIO || type == QuestionDef.QTN_TYPE_IMAGE)){
 				widgetWrapper = addNewLabel(questionDef.getText(),false);
 				widgetWrapper.setBinding(questionDef.getVariableName());
@@ -813,10 +799,6 @@ public class DesignSurfaceView extends DesignGroupView implements SelectionHandl
 				widgetWrapper = addNewDropdownList(false);
 			else if(type == QuestionDef.QTN_TYPE_DATE)
 				widgetWrapper = addNewDatePicker(false);
-			else if(type == QuestionDef.QTN_TYPE_DATE_TIME)
-				widgetWrapper = addNewDateTimeWidget(false);
-			else if(type == QuestionDef.QTN_TYPE_TIME)
-				widgetWrapper = addNewTimeWidget(false);
 			else if(type == QuestionDef.QTN_TYPE_LIST_MULTIPLE){
 				widgetWrapper = addNewCheckBoxSet(questionDef,true,tabIndex);
 				tabIndex += questionDef.getOptions().size();
@@ -851,9 +833,6 @@ public class DesignSurfaceView extends DesignGroupView implements SelectionHandl
 					selectedDragController.selectWidget(widgetWrapper);
 			}
 
-			if(x > maxX)
-				maxX = x;
-			
 			x = 20 + selectedPanel.getAbsoluteLeft();
 			y += 40;
 
@@ -893,14 +872,7 @@ public class DesignSurfaceView extends DesignGroupView implements SelectionHandl
 			addCancelButton(false);
 		}
 
-		y += ((ScrollPanel)getParent()).getScrollPosition();
-		
 		setHeight(y+40+"px");
-		
-		if(maxX < 900)
-			maxX = 900;
-		if(FormUtil.convertDimensionToInt(getWidth()) < maxX)
-			setWidth(maxX + "px");
 	}
 
 
@@ -928,7 +900,6 @@ public class DesignSurfaceView extends DesignGroupView implements SelectionHandl
 
 			OptionDef optionDef = (OptionDef)options.get(i);
 			DesignWidgetWrapper wrapper = addNewWidget(new CheckBox(optionDef.getText()),false);
-			wrapper.setFontFamily(FormUtil.getDefaultFontFamily());
 			wrapper.setBinding(optionDef.getVariableName());
 			wrapper.setParentBinding(questionDef.getVariableName());
 			wrapper.setText(optionDef.getText());
@@ -1014,10 +985,6 @@ public class DesignSurfaceView extends DesignGroupView implements SelectionHandl
 				widgetWrapper = addNewDropdownList(false);
 			else if(qtn.getDataType() == QuestionDef.QTN_TYPE_DATE)
 				widgetWrapper = addNewDatePicker(false);
-			else if(qtn.getDataType() == QuestionDef.QTN_TYPE_DATE_TIME)
-				widgetWrapper = addNewDateTimeWidget(false);
-			else if(qtn.getDataType() == QuestionDef.QTN_TYPE_TIME)
-				widgetWrapper = addNewTimeWidget(false);
 			else if(qtn.getDataType() == QuestionDef.QTN_TYPE_LIST_MULTIPLE){
 				widgetWrapper = addNewCheckBoxSet(qtn,false,index);
 				index += qtn.getOptions().size();
@@ -1107,17 +1074,6 @@ public class DesignSurfaceView extends DesignGroupView implements SelectionHandl
 			}
 		});
 	}
-	
-	
-	/**
-	 * Checks if the design surface has any widgets.
-	 * 
-	 * @return true if it has, else false.
-	 */
-	public boolean hasWidgets(){
-		return (tabs.getTabBar().getTabCount() > 0 && selectedPanel != null && selectedPanel.getWidgetCount() > 0);
-	}
-	
 
 	/**
 	 * Loads design surface widgets from layout xml of the current form.
@@ -1292,7 +1248,7 @@ public class DesignSurfaceView extends DesignGroupView implements SelectionHandl
 			//if(event != null && DOM.eventGetType(event) == Event.ONCONTEXTMENU){
 			if(selectedPanel.getWidgetIndex(widget) > -1){
 				if(!ctrlKey){
-					if(!selectedDragController.isWidgetSelected(widget)/*selectedDragController.getSelectedWidgetCount() == 1*/)
+					if(selectedDragController.getSelectedWidgetCount() == 1)
 						selectedDragController.clearSelection();
 					selectedDragController.selectWidget(widget);
 				}

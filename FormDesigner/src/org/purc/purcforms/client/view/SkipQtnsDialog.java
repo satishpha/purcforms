@@ -11,17 +11,16 @@ import org.purc.purcforms.client.model.QuestionDef;
 import org.purc.purcforms.client.model.SkipRule;
 import org.purc.purcforms.client.util.FormUtil;
 
-import com.google.gwt.event.dom.client.ChangeEvent;
-import com.google.gwt.event.dom.client.ChangeHandler;
-import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.ChangeListener;
+import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.HasAlignment;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
+import com.google.gwt.user.client.ui.Widget;
 
 
 /**
@@ -77,14 +76,14 @@ public class SkipQtnsDialog  extends DialogBox {
 		HorizontalPanel horzPanel = new HorizontalPanel();
 		horzPanel.add(lbAllQtns);
 		
-		lbAllQtns.addChangeHandler(new ChangeHandler(){
-			public void onChange(ChangeEvent event){
+		lbAllQtns.addChangeListener(new ChangeListener(){
+			public void onChange(Widget sender){
 				btnSelect.setEnabled(true);
 			}
 		});
 		
-		lbSelQtns.addChangeHandler(new ChangeHandler(){
-			public void onChange(ChangeEvent event){
+		lbSelQtns.addChangeListener(new ChangeListener(){
+			public void onChange(Widget sender){
 				btnDeselect.setEnabled(true);
 			}
 		});
@@ -99,7 +98,7 @@ public class SkipQtnsDialog  extends DialogBox {
 		
 		mainPanel.setSpacing(5);
 		
-		setText(LocaleText.get("otherQuestions"));
+		setText("Other Questions");
 	}
 	
 	
@@ -140,7 +139,7 @@ public class SkipQtnsDialog  extends DialogBox {
 			if(qtnDef == questionDef)
 				continue;
 			
-			lbSelQtns.addItem(qtnDef.getDisplayText(), qtnDef.getVariableName());
+			lbSelQtns.addItem(qtnDef.getText(), qtnDef.getVariableName());
 		}
 	}
 	
@@ -161,7 +160,7 @@ public class SkipQtnsDialog  extends DialogBox {
 			if(skipRule != null && skipRule.containsActionTarget(qtnDef.getId()))
 				continue;
 			
-			lbAllQtns.addItem(qtnDef.getDisplayText(), qtnDef.getVariableName());
+			lbAllQtns.addItem(qtnDef.getText(), qtnDef.getVariableName());
 		}
 	}
 	
@@ -171,8 +170,8 @@ public class SkipQtnsDialog  extends DialogBox {
 	 */
 	private void setupHeaderLabels(){
 		HorizontalPanel horzPanel = new HorizontalPanel();
-		Label lblAllQtns = new Label(LocaleText.get("allQuestions"));
-		Label lblSelQtns = new Label(LocaleText.get("selectedQuestions"));
+		Label lblAllQtns = new Label("All Questions");
+		Label lblSelQtns = new Label("Selected Questions");
 		
 		horzPanel.add(lblAllQtns);
 		horzPanel.add(lblSelQtns);
@@ -200,14 +199,14 @@ public class SkipQtnsDialog  extends DialogBox {
 		
 		parentPanel.add(vertPanel);
 		
-		btnSelect.addClickHandler(new ClickHandler() {
-			public void onClick(ClickEvent event) {
+		btnSelect.addClickListener(new ClickListener() {
+			public void onClick(Widget sender) {
 				selectQuestions();
 			}
 		});
 		
-		btnDeselect.addClickHandler(new ClickHandler() {
-			public void onClick(ClickEvent event) {
+		btnDeselect.addClickListener(new ClickListener() {
+			public void onClick(Widget sender) {
 				deselectQuestions();
 			}
 		});
@@ -221,15 +220,15 @@ public class SkipQtnsDialog  extends DialogBox {
 	 * Sets up the Ok and Cancel buttons.
 	 */
 	private void setupOkCancelButtons(){
-		btnOk.addClickHandler(new ClickHandler() {
-			public void onClick(ClickEvent event) {
+		btnOk.addClickListener(new ClickListener() {
+			public void onClick(Widget sender) {
 				hide();
 				qtnSelListener.onQuestionsSelected(getSelectedQtns());
 			}
 		});
 		
-		btnCancel.addClickHandler(new ClickHandler() {
-			public void onClick(ClickEvent event) {
+		btnCancel.addClickListener(new ClickListener() {
+			public void onClick(Widget sender) {
 				hide();
 			}
 		});

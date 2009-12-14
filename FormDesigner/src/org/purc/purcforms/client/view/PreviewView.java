@@ -13,7 +13,6 @@ import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.DeferredCommand;
 import com.google.gwt.user.client.Event;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.AbsolutePanel;
 import com.google.gwt.user.client.ui.AbstractImagePrototype;
 import com.google.gwt.user.client.ui.MenuBar;
@@ -93,20 +92,21 @@ public class PreviewView extends FormRunnerView {
 		//This is needed for IE
 		DeferredCommand.addCommand(new Command() {
 			public void execute() {
+				//onWindowResized(Window.getClientWidth(), Window.getClientHeight());
 				setHeight(getHeight());
 			}
 		});
 	}
 
 	@Override
-	protected void submit(){		
+	protected void submit(){
 		if(formDef != null){
 			if(formDef.getDoc() == null)
 				XformBuilder.fromFormDef2Xform(formDef);
 
 			saveValues();
 
-			if(!isValid(false))
+			if(!isValid())
 				return;
 
 			String xml = XformUtil.getInstanceDataDoc(formDef.getDoc()).toString();
@@ -142,16 +142,7 @@ public class PreviewView extends FormRunnerView {
 		case Event.ONMOUSEDOWN:
 			if( (event.getButton() & Event.BUTTON_RIGHT) != 0){
 				if(event.getTarget().getClassName().length() == 0){
-					
-					int ypos = event.getClientY();
-					if(Window.getClientHeight() - ypos < 100)
-						ypos = event.getClientY() - 100;
-					
-					int xpos = event.getClientX();
-					if(Window.getClientWidth() - xpos < 110)
-						xpos = event.getClientX() - 110;
-					
-					popup.setPopupPosition(xpos, ypos);
+					popup.setPopupPosition(event.getClientX(), event.getClientY());
 					popup.show();
 					FormDesignerUtil.disableContextMenu(popup.getElement());
 				}

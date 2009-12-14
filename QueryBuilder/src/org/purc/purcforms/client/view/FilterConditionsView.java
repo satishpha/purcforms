@@ -2,8 +2,8 @@ package org.purc.purcforms.client.view;
 
 import java.util.HashMap;
 
-import org.purc.purcforms.client.controller.ConditionController;
 import org.purc.purcforms.client.controller.FilterRowActionListener;
+import org.purc.purcforms.client.controller.ConditionController;
 import org.purc.purcforms.client.locale.LocaleText;
 import org.purc.purcforms.client.model.Condition;
 import org.purc.purcforms.client.model.FilterCondition;
@@ -11,14 +11,13 @@ import org.purc.purcforms.client.model.FilterConditionGroup;
 import org.purc.purcforms.client.model.FormDef;
 import org.purc.purcforms.client.model.QuestionDef;
 import org.purc.purcforms.client.sql.XmlBuilder;
-import org.purc.purcforms.client.widget.AddConditionHyperlink;
 import org.purc.purcforms.client.widget.ConditionActionHyperlink;
+import org.purc.purcforms.client.widget.AddConditionHyperlink;
 import org.purc.purcforms.client.widget.ConditionWidget;
 import org.purc.purcforms.client.widget.GroupHyperlink;
 
-import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.ui.CheckBox;
+import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.HorizontalPanel;
@@ -69,9 +68,9 @@ public class FilterConditionsView  extends Composite implements ConditionControl
 		horizontalPanel.add(new Label(LocaleText.get("ofTheFollowingApply")));
 		verticalPanel.add(horizontalPanel);
 
-		addConditionLink.addClickHandler(new ClickHandler(){
-			public void onClick(ClickEvent event){
-				addCondition((Widget)event.getSource());
+		addConditionLink.addClickListener(new ClickListener(){
+			public void onClick(Widget sender){
+				addCondition(sender);
 			}
 		});
 
@@ -143,9 +142,9 @@ public class FilterConditionsView  extends Composite implements ConditionControl
 		horizontalPanel.add(addConditionLink);
 		verticalPanel.insert(horizontalPanel, ++index);
 
-		addConditionLink.addClickHandler(new ClickHandler(){
-			public void onClick(ClickEvent event){
-				addCondition((Widget)event.getSource());
+		addConditionLink.addClickListener(new ClickListener(){
+			public void onClick(Widget sender){
+				addCondition(sender);
 			}
 		});
 

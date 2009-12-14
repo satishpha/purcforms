@@ -20,6 +20,7 @@ import com.google.gwt.user.client.ui.MenuBar;
 import com.google.gwt.user.client.ui.MenuItem;
 import com.google.gwt.user.client.ui.MenuItemSeparator;
 import com.google.gwt.user.client.ui.PopupPanel;
+import com.google.gwt.user.client.ui.SourcesMouseEvents;
 import com.google.gwt.user.client.ui.TabBar;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.xml.client.Element;
@@ -32,7 +33,7 @@ import com.google.gwt.xml.client.NodeList;
  * @author daniel
  *
  */
-public class DesignGroupWidget extends DesignGroupView implements DragDropListener{
+public class DesignGroupWidget extends DesignGroupView implements DragDropListener,SourcesMouseEvents{
 
 	private IWidgetPopupMenuListener widgetPopupMenuListener;
 
@@ -67,8 +68,6 @@ public class DesignGroupWidget extends DesignGroupView implements DragDropListen
 
 		DOM.sinkEvents(getElement(),DOM.getEventsSunk(getElement()) | Event.MOUSEEVENTS | Event.KEYEVENTS);
 
-		setupPopup();
-		
 		widgetPopup = new PopupPanel(true,true);
 		MenuBar menuBar = new MenuBar(true);
 		menuBar.addItem(FormDesignerUtil.createHeaderHTML(images.cut(),LocaleText.get("cut")),true,new Command(){
@@ -81,15 +80,17 @@ public class DesignGroupWidget extends DesignGroupView implements DragDropListen
 			public void execute() {widgetPopup.hide(); deleteWidgets();}});
 
 		menuBar.addSeparator(); //LocaleText.get("??????")?????????
-		menuBar.addItem(FormDesignerUtil.createHeaderHTML(images.add(),LocaleText.get("changeWidgetH")),true, new Command(){
+		menuBar.addItem(FormDesignerUtil.createHeaderHTML(images.add(),"Change Widget H"),true, new Command(){
 			public void execute() {widgetPopup.hide(); changeWidget(false);}});
 
-		menuBar.addItem(FormDesignerUtil.createHeaderHTML(images.add(),LocaleText.get("changeWidgetV")),true, new Command(){
+		menuBar.addItem(FormDesignerUtil.createHeaderHTML(images.add(),"Change Widget V"),true, new Command(){
 			public void execute() {widgetPopup.hide(); changeWidget(true);}});
 
 		widgetPopup.setWidget(menuBar);
 
 		rubberBand.addStyleName("rubberBand");
+		
+		setupPopup();
 	}
 
 	public DesignGroupWidget(DesignGroupWidget designGroupWidget, Images images,IWidgetPopupMenuListener widgetPopupMenuListener){
@@ -165,12 +166,6 @@ public class DesignGroupWidget extends DesignGroupView implements DragDropListen
 
 		addControlMenu.addItem(FormDesignerUtil.createHeaderHTML(images.addchild(),LocaleText.get("datePicker")),true,new Command(){
 			public void execute() {popup.hide(); addNewDatePicker(true);}});
-		
-		addControlMenu.addItem(FormDesignerUtil.createHeaderHTML(images.addchild(),LocaleText.get("dateTimeWidget")),true,new Command(){
-			public void execute() {popup.hide(); addNewDateTimeWidget(true);}});
-		
-		addControlMenu.addItem(FormDesignerUtil.createHeaderHTML(images.addchild(),LocaleText.get("timeWidget")),true,new Command(){
-			public void execute() {popup.hide(); addNewTimeWidget(true);}});
 
 		addControlMenu.addItem(FormDesignerUtil.createHeaderHTML(images.addchild(),LocaleText.get("groupBox")),true,new Command(){
 			public void execute() {popup.hide(); addNewGroupBox(true);}});
@@ -246,8 +241,6 @@ public class DesignGroupWidget extends DesignGroupView implements DragDropListen
 
 		menuBar.addSeparator();
 
-		lockWidgetsMenu = menuBar.addItem(FormDesignerUtil.createHeaderHTML(images.add(),LocaleText.get("lockWidgets")),true, new Command(){
-			public void execute() {popup.hide(); lockWidgets();}});
 
 		menuBar.addItem(FormDesignerUtil.createHeaderHTML(images.add(),LocaleText.get("selectAll")),true, new Command(){
 			public void execute() {popup.hide(); selectAll();}});
@@ -361,14 +354,6 @@ public class DesignGroupWidget extends DesignGroupView implements DragDropListen
 				setHeaderLabel(widget);
 				widget.setBinding(((DesignWidgetWrapper)getParent().getParent()).getBinding());
 			}
-			
-			//Load all kids if this is a DesignGroupWidget
-			if(widget != null && (widget.getWrappedWidget() instanceof DesignGroupWidget)){
-				((DesignGroupWidget)widget.getWrappedWidget()).loadWidgets(element,formDef);
-				((DesignGroupWidget)widget.getWrappedWidget()).setWidgetSelectionListener(currentWidgetSelectionListener); //TODO CHECK
-				if(!widget.isRepeated())
-					selectedDragController.makeDraggable(widget, ((DesignGroupWidget)widget.getWrappedWidget()).getHeaderLabel());
-			}
 		}
 	}
 
@@ -445,3 +430,97 @@ public class DesignGroupWidget extends DesignGroupView implements DragDropListen
 		this.headerLabel.setPopupPanel(null);
 	}
 }
+
+//public void onBrowserEvent(Event event) {
+//switch (DOM.eventGetType(event)) {
+//case Event.ONMOUSEDOWN:  
+//	mouseMoved = false;
+//	x = event.getClientX();
+//	y = event.getClientY();
+//
+//	if( (event.getButton() & Event.BUTTON_RIGHT) != 0){
+//
+//		updatePopup();
+//
+//		//Account for the difference between absolute position and the
+//		// body's positioning context.
+//		//x = event.getClientX() ;//- Document.get().getBodyOffsetLeft();
+//		//y = event.getClientY() ;//- Document.get().getBodyOffsetTop();
+//
+//		popup.setPopupPosition(event.getClientX(), event.getClientY());
+//
+//		FormDesignerUtil.disableContextMenu(popup.getElement());
+//		popup.show();
+//	}
+//	else{
+//		selectionXPos = selectionYPos = -1;
+//		//if(!selectedDragController.isAnyWidgetSelected()){
+//		selectionXPos = event.getClientX() - selectedPanel.getAbsoluteLeft();
+//		selectionYPos = event.getClientY() - selectedPanel.getAbsoluteTop();
+//		//}
+//
+//		if(!(event.getShiftKey() || event.getCtrlKey())){
+//			selectedDragController.clearSelection();
+//			if(event.getTarget() != this.selectedPanel.getElement()){
+//				/*if(event.getTarget().getInnerText().equals(tabs.getTabBar().getTabHTML(tabs.getTabBar().getSelectedTab()))){
+//    					  widgetSelectionListener.onWidgetSelected(new DesignWidgetWrapper(tabs.getTabBar(),widgetPopup,this));
+//    					  return;
+//    				  }*/
+//			}
+//		}
+//		widgetSelectionListener.onWidgetSelected(null);
+//	}
+//	break;
+//case Event.ONMOUSEMOVE:
+//	mouseMoved = true;
+//	break;
+//case Event.ONMOUSEUP:
+//
+//	if(selectionXPos != -1 && mouseMoved)
+//		selectWidgets(event.getClientX() - selectedPanel.getAbsoluteLeft(),
+//				event.getClientY() - selectedPanel.getAbsoluteTop());
+//	mouseMoved = false;
+//	break;
+//case Event.ONKEYDOWN:
+//	if(this.isVisible()){
+//		int keyCode = event.getKeyCode();
+//		if(keyCode == KeyboardListener.KEY_LEFT)
+//			moveWidgets(MOVE_LEFT);
+//		else if(keyCode == KeyboardListener.KEY_RIGHT)
+//			moveWidgets(MOVE_RIGHT);
+//		else if(keyCode == KeyboardListener.KEY_UP)
+//			moveWidgets(MOVE_UP);
+//		else if(keyCode == KeyboardListener.KEY_DOWN)
+//			moveWidgets(MOVE_DOWN);  
+//		else if(event.getCtrlKey() && (keyCode == 'A' || keyCode == 'a')){
+//			selectAll();
+//			DOM.eventPreventDefault(event);
+//		}
+//		else if(event.getCtrlKey() && (keyCode == 'C' || keyCode == 'c')){
+//			if(selectedDragController.isAnyWidgetSelected())
+//				copyWidgets(false);
+//		}
+//		else if(event.getCtrlKey() && (keyCode == 'X' || keyCode == 'x')){
+//			if(selectedDragController.isAnyWidgetSelected())
+//				cutWidgets();
+//		}
+//		else if(event.getCtrlKey() && (keyCode == 'V' || keyCode == 'v')){
+//			if(Context.clipBoardWidgets.size() > 0 && x >= 0){
+//				x += selectedPanel.getAbsoluteLeft();
+//				y += selectedPanel.getAbsoluteTop();
+//				pasteWidgets();
+//				x = -1; //TODO prevent pasting twice as this is fired twice. Needs smarter solution
+//			}
+//		}
+//		else if(keyCode == KeyboardListener.KEY_DELETE){
+//			if(selectedDragController.isAnyWidgetSelected())
+//				deleteWidgets();
+//		}
+//		else if(event.getCtrlKey() && (keyCode == 'F' || keyCode == 'f')){
+//			format();
+//			DOM.eventPreventDefault(event);
+//		}
+//	}
+//	break;
+//}
+//}

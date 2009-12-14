@@ -112,7 +112,7 @@ public class FormDesignerUtil {
 			if(!dynamicOptions && refQuestion == questionDef)
 				continue;
 			
-			oracle.add(questionDef.getDisplayText());	
+			oracle.add(questionDef.getText());	
 			
 			//TODO Allowed for now since repeat questions will have ids which cant be equal to
 			//those of parents. But test this to ensure it does not bring in bugs.
@@ -236,8 +236,6 @@ public class FormDesignerUtil {
 		swapChars.put("=", "eq");
 		swapChars.put("/", "slash");
 		swapChars.put("\\\\", "backslash");
-		
-		s = s.replace("'", "");
 		
 		// start by cleaning whitespace and converting to lowercase
 		s = s.replaceAll("^\\s+", "").replaceAll("\\s+$", "").replaceAll("\\s+", "_").toLowerCase();

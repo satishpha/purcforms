@@ -17,18 +17,13 @@ import org.purc.purcforms.client.model.QuestionDef;
 import org.purc.purcforms.client.util.FormDesignerUtil;
 import org.purc.purcforms.client.util.FormUtil;
 import org.purc.purcforms.client.util.StyleUtil;
-import org.purc.purcforms.client.widget.DatePickerEx;
 import org.purc.purcforms.client.widget.DatePickerWidget;
-import org.purc.purcforms.client.widget.DateTimeWidget;
 import org.purc.purcforms.client.widget.DesignGroupWidget;
 import org.purc.purcforms.client.widget.DesignWidgetWrapper;
 import org.purc.purcforms.client.widget.PaletteWidget;
-import org.purc.purcforms.client.widget.RadioButtonWidget;
-import org.purc.purcforms.client.widget.TextBoxWidget;
-import org.purc.purcforms.client.widget.TimeWidget;
+import org.zenika.widget.client.datePicker.DatePicker;
 
 import com.allen_sauer.gwt.dnd.client.drop.DropController;
-import com.google.gwt.event.dom.client.KeyCodes;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.Window;
@@ -39,11 +34,15 @@ import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.DecoratedTabPanel;
 import com.google.gwt.user.client.ui.Hyperlink;
 import com.google.gwt.user.client.ui.Image;
+import com.google.gwt.user.client.ui.KeyboardListener;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.MenuItem;
 import com.google.gwt.user.client.ui.MenuItemSeparator;
+import com.google.gwt.user.client.ui.MouseListener;
+import com.google.gwt.user.client.ui.MouseListenerCollection;
 import com.google.gwt.user.client.ui.PopupPanel;
+import com.google.gwt.user.client.ui.RadioButton;
 import com.google.gwt.user.client.ui.TextArea;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.Widget;
@@ -56,6 +55,7 @@ import com.google.gwt.user.client.ui.Widget;
  */
 public class DesignGroupView extends Composite implements WidgetSelectionListener,IWidgetPopupMenuListener,DragDropListener{
 
+	private MouseListenerCollection mouseListeners;
 	protected static final int MOVE_LEFT = 1;
 	protected static final int MOVE_RIGHT = 2;
 	protected static final int MOVE_UP = 3;
@@ -63,28 +63,27 @@ public class DesignGroupView extends Composite implements WidgetSelectionListene
 
 	/** The popup panel for the design surface context menu. */
 	protected PopupPanel popup;
-
+	
 	/** The popup panel for the widget context menu. */
 	protected PopupPanel widgetPopup;
 
 	/** The cursor position x cordinate. */
 	protected int x;
-
+	
 	/** The cursor position y cordinate. */
 	protected int y;
 
 	protected int clipboardLeftMostPos;
 	protected int clipboardTopMostPos;
-
+	
 	/** The copy menu item for the design surface context menu. */
 	protected MenuItem copyMenu;
-
+	
 	/** The cut menu item. */
 	protected MenuItem cutMenu;
 	protected MenuItem pasteMenu;
 	protected MenuItem deleteWidgetsMenu;
 	protected MenuItem groupWidgetsMenu;
-	protected MenuItem lockWidgetsMenu;
 	protected MenuItemSeparator cutCopySeparator;
 	protected MenuItemSeparator pasteSeparator;
 	protected MenuItemSeparator deleteWidgetsSeparator;
@@ -107,7 +106,7 @@ public class DesignGroupView extends Composite implements WidgetSelectionListene
 	/** Tabs for displaying pages. */
 	protected DecoratedTabPanel tabs = new DecoratedTabPanel();
 	protected HashMap<Integer,DesignWidgetWrapper> pageWidgets = new HashMap<Integer,DesignWidgetWrapper>();
-
+	
 	/** The index of the selected page tab. */
 	protected int selectedTabIndex = 0;
 
@@ -116,14 +115,14 @@ public class DesignGroupView extends Composite implements WidgetSelectionListene
 	/** The text box widget for inline label editing. */
 	protected TextBox txtEdit = new TextBox();
 	protected DesignWidgetWrapper editWidget;
-
+	
 	/** The selection rubber band height in pixels. */
 	protected String rubberBandHeight;
-
+	
 	/** The selection rubber band width in pixels. */
 	protected String rubberBandWidth;
 
-
+	
 	/**
 	 * Creates a new instance of the design surface.
 	 * 
@@ -131,6 +130,19 @@ public class DesignGroupView extends Composite implements WidgetSelectionListene
 	 */
 	public DesignGroupView(Images images){
 		this.images = images;
+	}
+
+	public void addMouseListener(MouseListener listener) {
+		if (mouseListeners == null) {
+			mouseListeners = new MouseListenerCollection();
+		}
+		mouseListeners.add(listener);
+	}
+
+	public void removeMouseListener(MouseListener listener) {
+		if (mouseListeners != null) {
+			mouseListeners.remove(listener);
+		}
 	}
 
 	public void onDragEnd(Widget widget) {
@@ -172,7 +184,7 @@ public class DesignGroupView extends Composite implements WidgetSelectionListene
 					//	selectedDragController.clearSelection();
 				}
 
-				if(!multipleSel && !selectedDragController.isWidgetSelected(widget)/*selectedDragController.getSelectedWidgetCount() == 1*/)
+				if(!multipleSel && selectedDragController.getSelectedWidgetCount() == 1)
 					selectedDragController.clearSelection();
 
 				//Deselect and stop editing of any widget in group boxes
@@ -441,7 +453,7 @@ public class DesignGroupView extends Composite implements WidgetSelectionListene
 			usingSelection = true;
 
 		List<String> tops = getInputWidgetTops(panel,usingSelection,count);
-
+		
 		DesignWidgetWrapper widget = null;
 		for(int index =0; index < count; index++){
 			if(usingSelection)
@@ -457,12 +469,12 @@ public class DesignGroupView extends Composite implements WidgetSelectionListene
 				//We do not align labels which are not on the same y pos as at least one input widget.
 				if(!tops.contains(widget.getTop()))
 					continue;
-
+					
 				if(widget.getElement().getScrollWidth() > longestLabelWidth){
 					longestLabelWidth = widget.getElement().getScrollWidth();
 					longestLabelLeft = FormUtil.convertDimensionToInt(widget.getLeft());
 				}
-
+				
 				labels.add(widget);
 			}
 			else
@@ -479,8 +491,8 @@ public class DesignGroupView extends Composite implements WidgetSelectionListene
 			widget.setLeft((relativeWidth - widget.getElement().getScrollWidth()+"px"));
 		}
 	}
-
-
+	
+	
 	/**
 	 * Gets a list of widget top values, in the selected page, which capture user data. 
 	 * These are neither labels, buttons, nor group boxes.
@@ -492,7 +504,7 @@ public class DesignGroupView extends Composite implements WidgetSelectionListene
 	 */
 	private List<String> getInputWidgetTops(AbsolutePanel panel, boolean usingSelection, int count){
 		List<String> inputWidgetTops = new ArrayList<String>();
-
+		
 		DesignWidgetWrapper widget = null;
 		for(int index =0; index < count; index++){
 			if(usingSelection)
@@ -507,7 +519,7 @@ public class DesignGroupView extends Composite implements WidgetSelectionListene
 
 			inputWidgetTops.add(widget.getTop());
 		}
-
+		
 		return inputWidgetTops;
 	}
 
@@ -882,10 +894,10 @@ public class DesignGroupView extends Composite implements WidgetSelectionListene
 	}
 
 	/**
-	 * Moves widgets in a given direction due to movement of the keyboard arrow keys.
+	 * Moves widgets in a given dirrection due to movement of the keyboard arrow keys.
 	 * 
-	 * @param dirrection the move dirrection.
-	 * @return true if any widget was moved, else false.
+	 * @param dirrection the move
+	 * @return
 	 */
 	protected boolean moveWidgets(int dirrection){
 		List<Widget> widgets = selectedDragController.getSelectedWidgets();
@@ -918,42 +930,6 @@ public class DesignGroupView extends Composite implements WidgetSelectionListene
 	}
 
 	/**
-	 * Resizes widgets in a given direction due to movement of the keyboard arrow keys.
-	 * 
-	 * @param Event the current event object.
-	 * @return true if any widget was resized, else false.
-	 */
-	protected boolean resizeWidgets(Event event){
-		List<Widget> widgets = selectedDragController.getSelectedWidgets();
-		if(widgets == null)
-			return false;
-
-		int resizedCount = 0;
-
-		int keycode = event.getKeyCode();
-		for(int index = 0; index < widgets.size(); index++){
-			DesignWidgetWrapper widget = (DesignWidgetWrapper)widgets.get(index);
-			if(!widget.isResizable())
-				continue;
-
-			resizedCount++;
-
-			if(keycode == KeyCodes.KEY_LEFT)
-				widget.setWidthInt(widget.getWidthInt()-1);
-			else if(keycode == KeyCodes.KEY_RIGHT)
-				widget.setWidthInt(widget.getWidthInt()+1);
-			else if(keycode == KeyCodes.KEY_UP)
-				widget.setHeightInt(widget.getHeightInt()-1);
-			else if(keycode == KeyCodes.KEY_DOWN)
-				widget.setHeightInt(widget.getHeightInt()+1);
-			else 
-				return false; //Shift press when not in combination with arrow keys is ignored.
-		}
-
-		return resizedCount > 0;
-	}
-
-	/**
 	 * Selects widgets wrapped by the rubber band.
 	 * 
 	 * @param event the event object.
@@ -980,14 +956,14 @@ public class DesignGroupView extends Composite implements WidgetSelectionListene
 			widget.setHeightInt(endY - widget.getTopInt());
 		}
 
-		if(event.getKeyCode() == KeyCodes.KEY_UP || event.getKeyCode() == KeyCodes.KEY_DOWN){
+		if(event.getKeyCode() == KeyboardListener.KEY_UP || event.getKeyCode() == KeyboardListener.KEY_DOWN){
 			for(int index = 0; index < selectedDragController.getSelectedWidgetCount(); index++){
 				DesignWidgetWrapper widget = (DesignWidgetWrapper)selectedDragController.getSelectedWidgetAt(index);
 				widget.setHeightInt(endY - widget.getTopInt());
 			}
 		}
 
-		if(event.getKeyCode() == KeyCodes.KEY_RIGHT || event.getKeyCode() == KeyCodes.KEY_LEFT){
+		if(event.getKeyCode() == KeyboardListener.KEY_RIGHT || event.getKeyCode() == KeyboardListener.KEY_LEFT){
 			for(int index = 0; index < selectedDragController.getSelectedWidgetCount(); index++){
 				DesignWidgetWrapper widget = (DesignWidgetWrapper)selectedDragController.getSelectedWidgetAt(index);
 				widget.setWidthInt(endX - widget.getLeftInt());
@@ -1020,8 +996,6 @@ public class DesignGroupView extends Composite implements WidgetSelectionListene
 			visible = true;
 		pasteSeparator.setVisible(visible);
 		pasteMenu.setVisible(visible); 
-
-		lockWidgetsMenu.setHTML(FormDesignerUtil.createHeaderHTML(images.add(),Context.getLockWidgets() ? LocaleText.get("unLockWidgets") : LocaleText.get("lockWidgets")));
 	}
 
 	/**
@@ -1091,7 +1065,7 @@ public class DesignGroupView extends Composite implements WidgetSelectionListene
 		wrapper.setFontFamily(FormUtil.getDefaultFontFamily());
 		return wrapper;
 	}
-
+	
 	/**
 	 * Adds a new audio or video widget.
 	 * 
@@ -1108,7 +1082,7 @@ public class DesignGroupView extends Composite implements WidgetSelectionListene
 		wrapper.setFontFamily(FormUtil.getDefaultFontFamily());
 		return wrapper;
 	}
-
+	
 	/**
 	 * Adds a new server search widget to the selected page.
 	 * 
@@ -1146,7 +1120,7 @@ public class DesignGroupView extends Composite implements WidgetSelectionListene
 	 * @return the newly added widget.s
 	 */
 	protected DesignWidgetWrapper addNewTextBox(boolean select){
-		TextBoxWidget tb = new TextBoxWidget();
+		TextBox tb = new TextBox();
 		DOM.setStyleAttribute(tb.getElement(), "height","25px");
 		DOM.setStyleAttribute(tb.getElement(), "width","200px");
 		return addNewWidget(tb,select);
@@ -1159,33 +1133,7 @@ public class DesignGroupView extends Composite implements WidgetSelectionListene
 	 * @return the newly added widget.
 	 */
 	protected DesignWidgetWrapper addNewDatePicker(boolean select){
-		DatePickerEx tb = new DatePickerWidget();
-		DOM.setStyleAttribute(tb.getElement(), "height","25px");
-		DOM.setStyleAttribute(tb.getElement(), "width","200px");
-		return addNewWidget(tb,select);
-	}
-
-	/**
-	 * Adds a new date time widget to the selected page.
-	 * 
-	 * @param select set to true to automatically select the new widget.
-	 * @return the newly added widget.
-	 */
-	protected DesignWidgetWrapper addNewDateTimeWidget(boolean select){
-		DateTimeWidget tb = new DateTimeWidget();
-		DOM.setStyleAttribute(tb.getElement(), "height","25px");
-		DOM.setStyleAttribute(tb.getElement(), "width","200px");
-		return addNewWidget(tb,select);
-	}
-
-	/**
-	 * Adds a new time widget to the selected page.
-	 * 
-	 * @param select set to true to automatically select the new widget.
-	 * @return the newly added widget.
-	 */
-	protected DesignWidgetWrapper addNewTimeWidget(boolean select){
-		TimeWidget tb = new TimeWidget();
+		DatePicker tb = new DatePickerWidget();
 		DOM.setStyleAttribute(tb.getElement(), "height","25px");
 		DOM.setStyleAttribute(tb.getElement(), "width","200px");
 		return addNewWidget(tb,select);
@@ -1198,9 +1146,7 @@ public class DesignGroupView extends Composite implements WidgetSelectionListene
 	 * @return the newly added widget.
 	 */
 	protected DesignWidgetWrapper addNewCheckBox(boolean select){
-		DesignWidgetWrapper wrapper = addNewWidget(new CheckBox(LocaleText.get("checkBox")),select);		
-		wrapper.setFontFamily(FormUtil.getDefaultFontFamily());
-		return wrapper;
+		return addNewWidget(new CheckBox(LocaleText.get("checkBox")),select);
 	}
 
 	/**
@@ -1210,9 +1156,7 @@ public class DesignGroupView extends Composite implements WidgetSelectionListene
 	 * @return the newly added widget.
 	 */
 	protected DesignWidgetWrapper addNewRadioButton(boolean select){
-		DesignWidgetWrapper wrapper = addNewWidget(new RadioButtonWidget("RadioButton",LocaleText.get("radioButton")),select);
-		wrapper.setFontFamily(FormUtil.getDefaultFontFamily());
-		return wrapper;
+		return addNewWidget(new RadioButton("RadioButton",LocaleText.get("radioButton")),select);
 	}
 
 	/**
@@ -1252,7 +1196,6 @@ public class DesignGroupView extends Composite implements WidgetSelectionListene
 	 */
 	protected DesignWidgetWrapper addNewButton(String label, String binding, boolean select){
 		DesignWidgetWrapper wrapper = addNewWidget(new Button(label),select);
-		wrapper.setFontFamily(FormUtil.getDefaultFontFamily());
 		wrapper.setWidthInt(70);
 		wrapper.setHeightInt(30);
 		wrapper.setBinding(binding);
@@ -1308,7 +1251,7 @@ public class DesignGroupView extends Composite implements WidgetSelectionListene
 		String text = ((PaletteWidget)widget).getName();
 
 		DesignWidgetWrapper retWidget = null;
-
+		
 		if(text.equals(LocaleText.get("label")))
 			retWidget = addNewLabel(LocaleText.get("label"),true);
 		else if(text.equals(LocaleText.get("textBox")))
@@ -1325,10 +1268,9 @@ public class DesignGroupView extends Composite implements WidgetSelectionListene
 			retWidget = addNewButton(LocaleText.get("button"),null,true);
 		else if(text.equals(LocaleText.get("datePicker")))
 			retWidget = addNewDatePicker(true);
-		else if(text.equals(LocaleText.get("dateTimeWidget")))
-			retWidget = addNewDateTimeWidget(true);
-		else if(text.equals(LocaleText.get("timeWidget")))
-			retWidget = addNewTimeWidget(true);
+		/*else if(text.equals("Custom"))
+			return addNewCustomWiget(true); */
+		
 		else if(text.equals(LocaleText.get("groupBox")))
 			retWidget = addNewGroupBox(true);
 		else if(text.equals(LocaleText.get("repeatSection")))
@@ -1345,7 +1287,7 @@ public class DesignGroupView extends Composite implements WidgetSelectionListene
 			int h = retWidget.getTopInt() + retWidget.getHeightInt();
 			if(height < h)
 				setHeight(height + (h-height)+10+"px");
-
+			
 			int width = FormUtil.convertDimensionToInt(getWidth());
 			int w = retWidget.getLeftInt() + retWidget.getWidthInt();
 			if(width < w)
@@ -1370,10 +1312,7 @@ public class DesignGroupView extends Composite implements WidgetSelectionListene
 
 		// Allow multiple widgets to be selected at once using CTRL-click
 		selectedDragController.setBehaviorMultipleSelection(true);
-
-		//Un commenting the line below causes flickering during drag and drop
-		//selectedDragController.setBehaviorDragStartSensitivity(1);
-
+		selectedDragController.setBehaviorDragStartSensitivity(1);
 		//selectedDragController.setBehaviorCancelDocumentSelections(true);
 
 		// create a DropController for each drop target on which draggable widgets
@@ -1472,16 +1411,7 @@ public class DesignGroupView extends Composite implements WidgetSelectionListene
 
 			if( (event.getButton() & Event.BUTTON_RIGHT) != 0){
 				updatePopup();
-
-				int ypos = event.getClientY();
-				if(Window.getClientHeight() - ypos < 220)
-					ypos = event.getClientY() - 220;
-
-				int xpos = event.getClientX();
-				if(Window.getClientWidth() - xpos < 170)
-					xpos = event.getClientX() - 170;
-
-				popup.setPopupPosition(xpos, ypos);
+				popup.setPopupPosition(event.getClientX(), event.getClientY());
 				FormDesignerUtil.disableContextMenu(popup.getElement());
 				popup.show();
 			}
@@ -1502,15 +1432,13 @@ public class DesignGroupView extends Composite implements WidgetSelectionListene
 					}
 				}
 
-				if(widgetSelectionListener != null){
-					if(this instanceof DesignGroupWidget)
-						widgetSelectionListener.onWidgetSelected((DesignWidgetWrapper)this.getParent().getParent(),event.getCtrlKey());
+				if(this instanceof DesignGroupWidget)
+					widgetSelectionListener.onWidgetSelected((DesignWidgetWrapper)this.getParent().getParent(),event.getCtrlKey());
 
-					//if(!(this instanceof DesignGroupWidget) || (this instanceof DesignGroupWidget && !((DesignWidgetWrapper)this.getParent().getParent()).isRepeated()))
-					//	widgetSelectionListener.onWidgetSelected(null);
+				//if(!(this instanceof DesignGroupWidget) || (this instanceof DesignGroupWidget && !((DesignWidgetWrapper)this.getParent().getParent()).isRepeated()))
+				//	widgetSelectionListener.onWidgetSelected(null);
 
-					widgetSelectionListener.onWidgetSelected(this,event.getCtrlKey());
-				}
+				widgetSelectionListener.onWidgetSelected(this,event.getCtrlKey());
 
 				clearGroupBoxSelection();
 
@@ -1528,7 +1456,7 @@ public class DesignGroupView extends Composite implements WidgetSelectionListene
 
 			//if(selectedPanel.getWidgetCount() > 0)
 			stopRubberBand(event);
-			if(selectionXPos > 0 && mouseMoved)
+			if(selectionXPos != -1 && mouseMoved)
 				selectWidgets(event);
 			mouseMoved = false;
 			DOM.releaseCapture(getElement()); //Mouse could have been captured in startRubberBand and so release it.
@@ -1579,36 +1507,27 @@ public class DesignGroupView extends Composite implements WidgetSelectionListene
 
 		if(this.isVisible()){
 			int keyCode = event.getKeyCode();
-			if(event.getShiftKey() || event.getCtrlKey())
-				ret = resizeWidgets(event);
-			else if(keyCode == KeyCodes.KEY_LEFT)
+			if(keyCode == KeyboardListener.KEY_LEFT)
 				ret = moveWidgets(MOVE_LEFT);
-			else if(keyCode == KeyCodes.KEY_RIGHT)
+			else if(keyCode == KeyboardListener.KEY_RIGHT)
 				ret = moveWidgets(MOVE_RIGHT);
-			else if(keyCode == KeyCodes.KEY_UP)
+			else if(keyCode == KeyboardListener.KEY_UP)
 				ret = moveWidgets(MOVE_UP);
-			else if(keyCode == KeyCodes.KEY_DOWN)
+			else if(keyCode == KeyboardListener.KEY_DOWN)
 				ret = moveWidgets(MOVE_DOWN);  
-
-			if(event.getCtrlKey() && (keyCode == 'A' || keyCode == 'a')){
+			else if(event.getCtrlKey() && (keyCode == 'A' || keyCode == 'a')){
 				if(!isTextAreaFocus(event)){ //TODO This works only when the textarea is clicked to get focus. Need to make it work even before clicking the text area (as long as it is visible)
 					//As for now, Ctrl+A selects all widgets on the design surface's current tab
 					//If one wants to select all widgets within a DesignGroupWidget, they should
 					//right click and select all
-					if(isTextBoxFocus(event)){
-						if(this instanceof DesignGroupWidget && ((DesignGroupWidget)this).editWidget != null)
-							((DesignGroupWidget)this).txtEdit.selectAll();
-						
-						DOM.eventPreventDefault(event);
-					}
-					else{
-						if(this instanceof DesignSurfaceView)
-							((DesignSurfaceView)this).selectAll();
-						else if(widgetSelectionListener instanceof DesignSurfaceView)
-							((DesignSurfaceView)widgetSelectionListener).selectAll();
-						
-						DOM.eventPreventDefault(event);
-					}
+					if(this instanceof DesignSurfaceView)
+						((DesignSurfaceView)this).selectAll();
+					else if(this instanceof DesignGroupWidget && ((DesignGroupWidget)this).editWidget != null)
+						((DesignGroupWidget)this).txtEdit.selectAll();
+					else if(widgetSelectionListener instanceof DesignSurfaceView)
+						((DesignSurfaceView)widgetSelectionListener).selectAll();
+
+					DOM.eventPreventDefault(event);
 				}
 				ret = true;
 			}
@@ -1636,7 +1555,7 @@ public class DesignGroupView extends Composite implements WidgetSelectionListene
 					ret = true;
 				}
 			}
-			else if(keyCode == KeyCodes.KEY_DELETE && !isTextBoxFocus(event)){
+			else if(keyCode == KeyboardListener.KEY_DELETE && !isTextBoxFocus(event)){
 				if(selectedDragController.isAnyWidgetSelected()){
 					deleteWidgets();
 					ret = true;
@@ -1652,14 +1571,10 @@ public class DesignGroupView extends Composite implements WidgetSelectionListene
 				boolean textBoxFocus = isTextBoxFocus(event);
 				if(!textBoxFocus || (editWidget != null /*&& event.getCurrentTarget() == editWidget.getElement()*/)){
 					boolean ret1 = false;
-					if(keyCode != KeyCodes.KEY_DELETE && editWidget == null)
+					if(keyCode != KeyboardListener.KEY_DELETE && editWidget == null)
 						ret1 = handleStartLabelEditing(event);
-					else if(keyCode == KeyCodes.KEY_ENTER && editWidget != null)
+					else if(keyCode == KeyboardListener.KEY_ENTER && editWidget != null)
 						handleStopLabelEditing(true);
-					else if(keyCode == KeyCodes.KEY_ESCAPE && editWidget != null){
-						txtEdit.setText(editWidget.getText());
-						handleStopLabelEditing(true);
-					}
 
 					if(ret1) //If handle start label edit is handled, need to signal such that others are not called for the same.
 						ret = true;
@@ -1751,8 +1666,7 @@ public class DesignGroupView extends Composite implements WidgetSelectionListene
 			}*/
 
 			OptionDef optionDef = (OptionDef)options.get(i);
-			DesignWidgetWrapper wrapper = addNewWidget(new RadioButtonWidget(optionDef.getText()),false);
-			wrapper.setFontFamily(FormUtil.getDefaultFontFamily());
+			DesignWidgetWrapper wrapper = addNewWidget(new RadioButton(optionDef.getText()),false);
 			wrapper.setBinding(optionDef.getVariableName());
 			wrapper.setParentBinding(questionDef.getVariableName());
 			wrapper.setText(optionDef.getText());
@@ -1761,15 +1675,14 @@ public class DesignGroupView extends Composite implements WidgetSelectionListene
 			if(vertically)
 				y += 40;
 			else
-				x += (optionDef.getText().length() * 14);
+				x += (optionDef.getText().length() * 12);
 		}
 
-		/*OptionDef optionDef = new OptionDef(0,LocaleText.get("noSelection"),null,questionDef);
-		DesignWidgetWrapper wrapper = addNewWidget(new RadioButtonWidget(optionDef.getText()),false);
-		wrapper.setFontFamily(FormUtil.getDefaultFontFamily());
+		OptionDef optionDef = new OptionDef(0,LocaleText.get("noSelection"),null,questionDef);
+		DesignWidgetWrapper wrapper = addNewWidget(new RadioButton(optionDef.getText()),false);
 		wrapper.setParentBinding(questionDef.getVariableName());
 		wrapper.setText(optionDef.getText());
-		wrapper.setTitle(optionDef.getText());*/
+		wrapper.setTitle(optionDef.getText());
 
 		return null;
 	}
@@ -1804,13 +1717,8 @@ public class DesignGroupView extends Composite implements WidgetSelectionListene
 			addNewRadioButtonSet(questionDef,vertically);
 		else
 			addNewSearchServerWidget(questionDef.getVariableName(),questionDef.getText(), true);
-
-		//increase height if the last widget is beyond our current y coordinate.
-		int height = FormUtil.convertDimensionToInt(getHeight());
-		if((height + getAbsoluteTop()) < y)
-			setHeight(y+"px");
 	}
-
+	
 	/**
 	 * Adds a new serach server widget.
 	 * 
@@ -1851,10 +1759,10 @@ public class DesignGroupView extends Composite implements WidgetSelectionListene
 
 		y = 28; //60 + 25;
 		x = 10;
-
+		
 		//new
 		x = LocaleText.get("noSelection").length() * 10;
-
+		
 		if(selectedPanel.getAbsoluteLeft() > 0)
 			x += selectedPanel.getAbsoluteLeft();
 		if(selectedPanel.getAbsoluteTop() > 0)
@@ -1862,10 +1770,10 @@ public class DesignGroupView extends Composite implements WidgetSelectionListene
 
 		addNewButton(LocaleText.get("search"),"search",false).setParentBinding(parentBinding);
 		//x = 120;
-
+		
 		x = 10;
 		x = (LocaleText.get("noSelection").length() * 12) + (LocaleText.get("search").length() * 10);
-
+		
 		if(selectedPanel.getAbsoluteLeft() > 0)
 			x += selectedPanel.getAbsoluteLeft();
 		addNewButton(LocaleText.get("clear"),"clear",false).setParentBinding(parentBinding);
@@ -1910,7 +1818,7 @@ public class DesignGroupView extends Composite implements WidgetSelectionListene
 
 		return widget;
 	}
-
+	
 	/**
 	 * Adds a new group box widget.
 	 * 
@@ -1956,10 +1864,10 @@ public class DesignGroupView extends Composite implements WidgetSelectionListene
 		//Without this, widgets in this box cant use Ctrl + A in edit mode and also
 		//edited text is not automatically selected.
 		widget.removeStyleName("dragdrop-handle");
-
+		
 		return widget;
 	}
-
+	
 	/**
 	 * Adds a new repeat section widget.
 	 * 
@@ -2039,7 +1947,7 @@ public class DesignGroupView extends Composite implements WidgetSelectionListene
 
 		return widget;
 	}
-
+	
 	/**
 	 * Adds a new picture section widget.
 	 * 
@@ -2222,9 +2130,5 @@ public class DesignGroupView extends Composite implements WidgetSelectionListene
 		y = oldY;
 
 		return widget;
-	}
-
-	protected void lockWidgets(){
-		Context.setLockWidgets(!Context.getLockWidgets());
 	}
 }

@@ -16,21 +16,16 @@ import org.purc.purcforms.client.model.QuestionDef;
 import org.purc.purcforms.client.util.FormDesignerUtil;
 import org.purc.purcforms.client.widget.skiprule.FieldWidget;
 
-import com.google.gwt.event.dom.client.ChangeEvent;
-import com.google.gwt.event.dom.client.ChangeHandler;
-import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.ClickHandler;
-import com.google.gwt.event.dom.client.KeyCodes;
-import com.google.gwt.event.dom.client.KeyDownEvent;
-import com.google.gwt.event.dom.client.KeyDownHandler;
-import com.google.gwt.event.dom.client.KeyUpEvent;
-import com.google.gwt.event.dom.client.KeyUpHandler;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.ChangeListener;
+import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlexTable;
 import com.google.gwt.user.client.ui.HasHorizontalAlignment;
 import com.google.gwt.user.client.ui.HorizontalPanel;
+import com.google.gwt.user.client.ui.KeyboardListener;
+import com.google.gwt.user.client.ui.KeyboardListenerAdapter;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.PushButton;
@@ -47,7 +42,7 @@ import com.google.gwt.xml.client.Node;
  * @author daniel
  *
  */
-public class DynamicListsView extends Composite implements ItemSelectionListener, ClickHandler{
+public class DynamicListsView extends Composite implements ItemSelectionListener, ClickListener{
 
 	/** The main or root widget. */
 	private VerticalPanel verticalPanel = new VerticalPanel();
@@ -121,13 +116,13 @@ public class DynamicListsView extends Composite implements ItemSelectionListener
 		verticalPanel.add(horizontalPanel);
 		verticalPanel.add(table);
 
-		lbOption.addChangeHandler(new ChangeHandler(){
-			public void onChange(ChangeEvent event){
+		lbOption.addChangeListener(new ChangeListener(){
+			public void onChange(Widget sender){
 				updateOptionList();
 			}
 		});
 
-		btnAdd.addClickHandler(this);
+		btnAdd.addClickListener(this);
 
 		table.setStyleName("cw-FlexTable");
 		table.setWidget(0, 0,new Label(LocaleText.get("text")));
@@ -371,10 +366,9 @@ public class DynamicListsView extends Composite implements ItemSelectionListener
 	 * 
 	 * @sender the button which was clicked.
 	 */
-	public void onClick(ClickEvent event){	
-		Object sender = event.getSource();
+	public void onClick(Widget sender){		
 		if(sender == btnAdd)
-			addNewOption().setFocus(true);
+			addNewOption();
 		else{
 			int rowCount = table.getRowCount();
 			for(int row = 1; row < rowCount; row++){
@@ -425,14 +419,13 @@ public class DynamicListsView extends Composite implements ItemSelectionListener
 	/**
 	 * Adds a new dynamic list option to the table.
 	 */
-	private TextBox addNewOption(){
+	private void addNewOption(){
 		table.removeRow(table.getRowCount() - 1);
 		TextBox textBox = addOption("","",table.getRowCount());
 		textBox.setFocus(true);
 		textBox.selectAll();
 		addAddButton();
 		addNewOptionDef();
-		return textBox;
 	}
 
 
@@ -456,17 +449,17 @@ public class DynamicListsView extends Composite implements ItemSelectionListener
 
 		PushButton button = new PushButton(FormDesignerWidget.images.delete().createImage());
 		button.setTitle(LocaleText.get("deleteItem"));
-		button.addClickHandler(this);
+		button.addClickListener(this);
 		table.setWidget(row, 2,button);
 
 		button = new PushButton(FormDesignerWidget.images.moveup().createImage());
 		button.setTitle(LocaleText.get("moveUp"));
-		button.addClickHandler(this);
+		button.addClickListener(this);
 		table.setWidget(row, 3,button);
 
 		button = new PushButton(FormDesignerWidget.images.movedown().createImage());
 		button.setTitle(LocaleText.get("moveDown"));
-		button.addClickHandler(this);
+		button.addClickListener(this);
 		table.setWidget(row, 4,button);
 
 		table.getFlexCellFormatter().setWidth(row, 0, "45%");
@@ -477,44 +470,34 @@ public class DynamicListsView extends Composite implements ItemSelectionListener
 		table.getWidget(row, 0).setWidth("100%");
 		table.getWidget(row, 1).setWidth("100%");
 
-		txtText.addChangeHandler(new ChangeHandler(){
-			public void onChange(ChangeEvent event){
-				updateText((TextBox)event.getSource());
+		txtText.addChangeListener(new ChangeListener(){
+			public void onChange(Widget sender){
+				updateText((TextBox)sender);
 			}
 		});
 
-		txtText.addKeyDownHandler(new KeyDownHandler(){
-			public void onKeyDown(KeyDownEvent event) {
-				int keyCode = event.getNativeKeyCode();
-				if(keyCode == KeyCodes.KEY_ENTER || keyCode == KeyCodes.KEY_DOWN)
-					moveToNextWidget((Widget)event.getSource(),0,keyCode == KeyCodes.KEY_DOWN);
-				else if(keyCode == KeyCodes.KEY_UP)
-					moveToPrevWidget((Widget)event.getSource(),0);
-			}
-		});
-		
-		txtText.addKeyUpHandler(new KeyUpHandler(){
-			public void onKeyUp(KeyUpEvent event) {
-				int keyCode = event.getNativeKeyCode();
-				if(!(keyCode == KeyCodes.KEY_ENTER || keyCode == KeyCodes.KEY_DOWN ||
-						keyCode == KeyCodes.KEY_DOWN || keyCode == KeyCodes.KEY_UP))
-					updateText((TextBox)event.getSource());
+		txtText.addKeyboardListener(new KeyboardListenerAdapter(){
+			public void onKeyDown(Widget sender, char keyCode, int modifiers) {
+				if(keyCode == KeyboardListener.KEY_ENTER || keyCode == KeyboardListener.KEY_DOWN)
+					moveToNextWidget(sender,0,keyCode == KeyboardListener.KEY_DOWN);
+				else if(keyCode == KeyboardListener.KEY_UP)
+					moveToPrevWidget(sender,0);
 			}
 		});
 
-		txtBinding.addChangeHandler(new ChangeHandler(){
-			public void onChange(ChangeEvent event){
-				updateBinding((TextBox)event.getSource());
+
+		txtBinding.addChangeListener(new ChangeListener(){
+			public void onChange(Widget sender){
+				updateBinding((TextBox)sender);
 			}
 		});
 
-		txtBinding.addKeyDownHandler(new KeyDownHandler(){
-			public void onKeyDown(KeyDownEvent event) {
-				int keyCode = event.getNativeKeyCode();
-				if(keyCode == KeyCodes.KEY_ENTER || keyCode == KeyCodes.KEY_DOWN)
-					moveToNextWidget((Widget)event.getSource(),1,keyCode == KeyCodes.KEY_DOWN);
-				else if(keyCode == KeyCodes.KEY_UP)
-					moveToPrevWidget((Widget)event.getSource(),1);
+		txtBinding.addKeyboardListener(new KeyboardListenerAdapter(){
+			public void onKeyDown(Widget sender, char keyCode, int modifiers) {
+				if(keyCode == KeyboardListener.KEY_ENTER || keyCode == KeyboardListener.KEY_DOWN)
+					moveToNextWidget(sender,1,keyCode == KeyboardListener.KEY_DOWN);
+				else if(keyCode == KeyboardListener.KEY_UP)
+					moveToPrevWidget(sender,1);
 			}
 		});
 
@@ -536,18 +519,13 @@ public class DynamicListsView extends Composite implements ItemSelectionListener
 				if(optionDef == null)
 					optionDef = addNewOptionDef();
 
-				String orgTextDefBinding = FormDesignerUtil.getXmlTagName(optionDef.getText());
-				
 				optionDef.setText(txtText.getText());
 
 				//automatically set the binding, if empty.
 				TextBox txtBinding = (TextBox)table.getWidget(row, 1);
 				String binding = txtBinding.getText();
-				//if(binding == null || binding.trim().length() == 0){
-				if(binding == null || binding.trim().length() == 0 || binding.equals(orgTextDefBinding)){
+				if(binding == null || binding.trim().length() == 0)
 					txtBinding.setText(FormDesignerUtil.getXmlTagName(optionDef.getText()));
-					optionDef.setVariableName(txtBinding.getText());
-				}
 
 				break;
 			}
@@ -635,19 +613,12 @@ public class DynamicListsView extends Composite implements ItemSelectionListener
 							return;
 						}
 						row++;
-						col = 1; //0;
+						col = 0;
 					}
 					else{
 						if(textBox.getText() == null || textBox.getText().trim().length() == 0)
 							return;
-						else if(row == (rowCount - 2)){
-							addNewOption();
-							return;
-						}
-						else
-							row++;
-						
-						col = 0; //1;
+						col = 1;
 					}
 
 					textBox = ((TextBox)table.getWidget(row, col));
@@ -701,7 +672,7 @@ public class DynamicListsView extends Composite implements ItemSelectionListener
 		}
 
 		OptionDef currentOptionDef;
-		List<OptionDef> list = new ArrayList<OptionDef>();
+		List list = new ArrayList();
 
 		//Remove all from index before selected all the way downwards
 		while(optns.size() >= index){
@@ -740,7 +711,7 @@ public class DynamicListsView extends Composite implements ItemSelectionListener
 		}
 
 		OptionDef currentItem; // = parent.getChild(index - 1);
-		List<OptionDef> list = new ArrayList<OptionDef>();
+		List list = new ArrayList();
 
 		//Remove all otions below selected index
 		while(optns.size() > 0 && optns.size() > index){

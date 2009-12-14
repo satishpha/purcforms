@@ -14,25 +14,23 @@ import org.purc.purcforms.client.util.StyleUtil;
 import org.purc.purcforms.client.widget.DesignGroupWidget;
 import org.purc.purcforms.client.widget.DesignWidgetWrapper;
 
-import com.google.gwt.event.dom.client.ChangeEvent;
-import com.google.gwt.event.dom.client.ChangeHandler;
-import com.google.gwt.event.dom.client.FocusEvent;
-import com.google.gwt.event.dom.client.FocusHandler;
-import com.google.gwt.event.dom.client.KeyUpEvent;
-import com.google.gwt.event.dom.client.KeyUpHandler;
-import com.google.gwt.event.logical.shared.SelectionEvent;
-import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.ChangeListener;
 import com.google.gwt.user.client.ui.CheckBox;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlexTable;
+import com.google.gwt.user.client.ui.FocusListenerAdapter;
 import com.google.gwt.user.client.ui.HasHorizontalAlignment;
 import com.google.gwt.user.client.ui.Hyperlink;
+import com.google.gwt.user.client.ui.KeyboardListenerAdapter;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.MultiWordSuggestOracle;
 import com.google.gwt.user.client.ui.RadioButton;
+import com.google.gwt.user.client.ui.ScrollPanel;
 import com.google.gwt.user.client.ui.SuggestBox;
+import com.google.gwt.user.client.ui.SuggestionEvent;
+import com.google.gwt.user.client.ui.SuggestionHandler;
 import com.google.gwt.user.client.ui.TabBar;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.Widget;
@@ -50,6 +48,9 @@ public class WidgetPropertiesView extends Composite implements WidgetSelectionLi
 
 	/** Widget for organising widgets in a tabular format. */
 	private FlexTable table = new FlexTable();
+
+	/** Panel for scrolling when the the loaded widgets can't fit in the visible region. */
+	private ScrollPanel scrollPanel = new ScrollPanel();
 
 	/** The currently selected widget which derives from DesignGroupView */
 	private DesignGroupView viewWidget;
@@ -266,7 +267,8 @@ public class WidgetPropertiesView extends Composite implements WidgetSelectionLi
 		for(int i=0; i<table.getRowCount(); i++)
 			cellFormatter.setHorizontalAlignment(i, 0, HasHorizontalAlignment.ALIGN_RIGHT);
 
-		initWidget(table);
+		scrollPanel.setWidget(table);
+		initWidget(scrollPanel);
 		setupEvents();
 		txtChildBinding.setEnabled(false);
 
@@ -301,94 +303,94 @@ public class WidgetPropertiesView extends Composite implements WidgetSelectionLi
 	 * Sets up event listeners.
 	 */
 	private void setupEvents(){
-		txtText.addChangeHandler(new ChangeHandler(){
-			public void onChange(ChangeEvent event){
+		txtText.addChangeListener(new ChangeListener(){
+			public void onChange(Widget sender){
 				updateText();
 			}
 		});
 
-		txtText.addKeyUpHandler(new KeyUpHandler(){
-			public void onKeyUp(KeyUpEvent event) {
+		txtText.addKeyboardListener(new KeyboardListenerAdapter(){
+			public void onKeyUp(Widget sender, char keyCode, int modifiers) {
 				updateText();
 			}
 		});
 
-		txtHelpText.addChangeHandler(new ChangeHandler(){
-			public void onChange(ChangeEvent event){
+		txtHelpText.addChangeListener(new ChangeListener(){
+			public void onChange(Widget sender){
 				updateHelpText();
 			}
 		});
-		txtHelpText.addKeyUpHandler(new KeyUpHandler(){
-			public void onKeyUp(KeyUpEvent event) {
+		txtHelpText.addKeyboardListener(new KeyboardListenerAdapter(){
+			public void onKeyUp(Widget sender, char keyCode, int modifiers) {
 				updateHelpText();
 			}
 		});
 
-		txtWidth.addChangeHandler(new ChangeHandler(){
-			public void onChange(ChangeEvent event){
+		txtWidth.addChangeListener(new ChangeListener(){
+			public void onChange(Widget sender){
 				updateWidth();
 			}
 		});
-		txtWidth.addKeyUpHandler(new KeyUpHandler(){
-			public void onKeyUp(KeyUpEvent event) {
+		txtWidth.addKeyboardListener(new KeyboardListenerAdapter(){
+			public void onKeyUp(Widget sender, char keyCode, int modifiers) {
 				updateWidth();
 			}
 		});
 
-		txtHeight.addChangeHandler(new ChangeHandler(){
-			public void onChange(ChangeEvent event){
+		txtHeight.addChangeListener(new ChangeListener(){
+			public void onChange(Widget sender){
 				updateHeight();
 			}
 		});
-		txtHeight.addKeyUpHandler(new KeyUpHandler(){
-			public void onKeyUp(KeyUpEvent event) {
+		txtHeight.addKeyboardListener(new KeyboardListenerAdapter(){
+			public void onKeyUp(Widget sender, char keyCode, int modifiers) {
 				updateHeight();
 			}
 		});
 
-		txtLeft.addChangeHandler(new ChangeHandler(){
-			public void onChange(ChangeEvent event){
+		txtLeft.addChangeListener(new ChangeListener(){
+			public void onChange(Widget sender){
 				updateLeft();
 			}
 		});
-		txtLeft.addKeyUpHandler(new KeyUpHandler(){
-			public void onKeyUp(KeyUpEvent event) {
+		txtLeft.addKeyboardListener(new KeyboardListenerAdapter(){
+			public void onKeyUp(Widget sender, char keyCode, int modifiers) {
 				updateLeft();
 			}
 		});
 
-		txtTop.addChangeHandler(new ChangeHandler(){
-			public void onChange(ChangeEvent event){
+		txtTop.addChangeListener(new ChangeListener(){
+			public void onChange(Widget sender){
 				updateTop();
 			}
 		});
-		txtTop.addKeyUpHandler(new KeyUpHandler(){
-			public void onKeyUp(KeyUpEvent event) {
+		txtTop.addKeyboardListener(new KeyboardListenerAdapter(){
+			public void onKeyUp(Widget sender, char keyCode, int modifiers) {
 				updateTop();
 			}
 		});
 
-		txtBinding.addChangeHandler(new ChangeHandler(){
-			public void onChange(ChangeEvent event){
+		txtBinding.addChangeListener(new ChangeListener(){
+			public void onChange(Widget sender){
 				updateBinding(widget,null);
 			}
 		});
 
-		txtChildBinding.addChangeHandler(new ChangeHandler(){
-			public void onChange(ChangeEvent event){
+		txtChildBinding.addChangeListener(new ChangeListener(){
+			public void onChange(Widget sender){
 				if(txtChildBinding.getText().trim().length() == 0)
 					updateChildBinding();
 			}
 		});
 
-		txtChildBinding.addFocusHandler(new FocusHandler(){
-			public void onFocus(FocusEvent event){
+		txtChildBinding.addFocusListener(new FocusListenerAdapter(){
+			public void onFocus(Widget sender){
 				txtChildBinding.selectAll();
 			}
 		});
 
-		txtBinding.addFocusHandler(new FocusHandler(){
-			public void onFocus(FocusEvent event){
+		txtBinding.addFocusListener(new FocusListenerAdapter(){
+			public void onFocus(Widget sender){
 				txtBinding.selectAll();
 			}
 			public void onLostFocus(Widget sender){
@@ -396,183 +398,183 @@ public class WidgetPropertiesView extends Composite implements WidgetSelectionLi
 			}
 		});
 
-		sgstBinding.addSelectionHandler(new SelectionHandler(){
-			public void onSelection(SelectionEvent event){
+		sgstBinding.addEventHandler(new SuggestionHandler(){
+			public void onSuggestionSelected(SuggestionEvent event){
 				updateBinding();
 			}
 		});
 
-		sgstChildBinding.addSelectionHandler(new SelectionHandler(){
-			public void onSelection(SelectionEvent event){
+		sgstChildBinding.addEventHandler(new SuggestionHandler(){
+			public void onSuggestionSelected(SuggestionEvent event){
 				updateChildBinding();
 			}
 		});
 
-		txtTabIndex.addChangeHandler(new ChangeHandler(){
-			public void onChange(ChangeEvent event){
+		txtTabIndex.addChangeListener(new ChangeListener(){
+			public void onChange(Widget sender){
 				updateTabIndex();
 			}
 		});
 
-		txtTabIndex.addKeyUpHandler(new KeyUpHandler(){
-			public void onKeyUp(KeyUpEvent event) {
+		txtTabIndex.addKeyboardListener(new KeyboardListenerAdapter(){
+			public void onKeyUp(Widget sender, char keyCode, int modifiers) {
 				updateTabIndex();
 			}
 		});
 
-		txtExternalSource.addChangeHandler(new ChangeHandler(){
-			public void onChange(ChangeEvent event){
+		txtExternalSource.addChangeListener(new ChangeListener(){
+			public void onChange(Widget sender){
 				updateExternalSource();
 			}
 		});
 
-		cbRepeat.addChangeHandler(new ChangeHandler(){
-			public void onChange(ChangeEvent event){
+		cbRepeat.addChangeListener(new ChangeListener(){
+			public void onChange(Widget sender){
 				updateIsRepeat();
 			}
 		});
 
-		txtExternalSource.addKeyUpHandler(new KeyUpHandler(){
-			public void onKeyUp(KeyUpEvent event) {
+		txtExternalSource.addKeyboardListener(new KeyboardListenerAdapter(){
+			public void onKeyUp(Widget sender, char keyCode, int modifiers) {
 				updateExternalSource();
 			}
 		});
 
-		txtDisplayField.addChangeHandler(new ChangeHandler(){
-			public void onChange(ChangeEvent event){
+		txtDisplayField.addChangeListener(new ChangeListener(){
+			public void onChange(Widget sender){
 				updateDisplayField();
 			}
 		});
 
-		txtDisplayField.addKeyUpHandler(new KeyUpHandler(){
-			public void onKeyUp(KeyUpEvent event) {
+		txtDisplayField.addKeyboardListener(new KeyboardListenerAdapter(){
+			public void onKeyUp(Widget sender, char keyCode, int modifiers) {
 				updateDisplayField();
 			}
 		});
 
-		txtValueField.addChangeHandler(new ChangeHandler(){
-			public void onChange(ChangeEvent event){
+		txtValueField.addChangeListener(new ChangeListener(){
+			public void onChange(Widget sender){
 				updateValueField();
 			}
 		});
 
-		txtValueField.addKeyUpHandler(new KeyUpHandler(){
-			public void onKeyUp(KeyUpEvent event) {
+		txtValueField.addKeyboardListener(new KeyboardListenerAdapter(){
+			public void onKeyUp(Widget sender, char keyCode, int modifiers) {
 				updateValueField();
 			}
 		});
 
 
-		txtForeColor.addChangeHandler(new ChangeHandler(){
-			public void onChange(ChangeEvent event){
+		txtForeColor.addChangeListener(new ChangeListener(){
+			public void onChange(Widget sender){
 				if(widget != null)
 					widget.setForeColor(txtForeColor.getText());
 			}
 		});
-		sgstForeColor.addSelectionHandler(new SelectionHandler(){
-			public void onSelection(SelectionEvent event){
+		sgstForeColor.addEventHandler(new SuggestionHandler(){
+			public void onSuggestionSelected(SuggestionEvent event){
 				if(widget != null)
 					widget.setForeColor(txtForeColor.getText());
 			}
 		});
-		txtBackgroundColor.addChangeHandler(new ChangeHandler(){
-			public void onChange(ChangeEvent event){
+		txtBackgroundColor.addChangeListener(new ChangeListener(){
+			public void onChange(Widget sender){
 				if(widget != null)
 					widget.setBackgroundColor(txtBackgroundColor.getText());
 				else if(viewWidget != null)
 					viewWidget.setBackgroundColor(txtBackgroundColor.getText());
 			}
 		});
-		sgstBackgroundColor.addSelectionHandler(new SelectionHandler(){
-			public void onSelection(SelectionEvent event){
+		sgstBackgroundColor.addEventHandler(new SuggestionHandler(){
+			public void onSuggestionSelected(SuggestionEvent event){
 				if(widget != null)
 					widget.setBackgroundColor(txtBackgroundColor.getText());
 				else if(viewWidget != null)
 					viewWidget.setBackgroundColor(txtBackgroundColor.getText());
 			}
 		});
-		txtBorderColor.addChangeHandler(new ChangeHandler(){
-			public void onChange(ChangeEvent event){
+		txtBorderColor.addChangeListener(new ChangeListener(){
+			public void onChange(Widget sender){
 				if(widget != null)
 					widget.setBorderColor(txtBorderColor.getText());
 				else if(viewWidget != null && viewWidget instanceof DesignGroupWidget)
 					((DesignWidgetWrapper)viewWidget.getParent().getParent()).setBorderColor(txtBorderColor.getText());
 			}
 		});
-		sgstBorderColor.addSelectionHandler(new SelectionHandler(){
-			public void onSelection(SelectionEvent event){
+		sgstBorderColor.addEventHandler(new SuggestionHandler(){
+			public void onSuggestionSelected(SuggestionEvent event){
 				if(widget != null)
 					widget.setBorderColor(txtBorderColor.getText());
 				else if(viewWidget != null && viewWidget instanceof DesignGroupWidget)
 					((DesignWidgetWrapper)viewWidget.getParent().getParent()).setBorderColor(txtBorderColor.getText());
 			}
 		});
-		txtFontSize.addChangeHandler(new ChangeHandler(){
-			public void onChange(ChangeEvent event){
+		txtFontSize.addChangeListener(new ChangeListener(){
+			public void onChange(Widget sender){
 				if(widget != null)
 					widget.setFontSize(txtFontSize.getText());
 			}
 		});
-		txtFontSize.addKeyUpHandler(new KeyUpHandler(){
-			public void onKeyUp(KeyUpEvent event) {
+		txtFontSize.addKeyboardListener(new KeyboardListenerAdapter(){
+			public void onKeyUp(Widget sender, char keyCode, int modifiers) {
 				if(widget != null)
 					widget.setFontSize(txtFontSize.getText());
 			}
 		});
-		txtFontFamily.addChangeHandler(new ChangeHandler(){
-			public void onChange(ChangeEvent event){
+		txtFontFamily.addChangeListener(new ChangeListener(){
+			public void onChange(Widget sender){
 				if(widget != null)
 					widget.setFontFamily(txtFontFamily.getText());
 			}
 		});
-		txtFontFamily.addKeyUpHandler(new KeyUpHandler(){
-			public void onKeyUp(KeyUpEvent event) {
+		txtFontFamily.addKeyboardListener(new KeyboardListenerAdapter(){
+			public void onKeyUp(Widget sender, char keyCode, int modifiers) {
 				if(widget != null)
 					widget.setFontFamily(txtFontFamily.getText());
 			}
 		});
-		txtBorderWidth.addChangeHandler(new ChangeHandler(){
-			public void onChange(ChangeEvent event){
+		txtBorderWidth.addChangeListener(new ChangeListener(){
+			public void onChange(Widget sender){
 				if(widget != null)
 					widget.setBorderWidth(txtBorderWidth.getText());
 				else if(viewWidget != null && viewWidget instanceof DesignGroupWidget)
 					((DesignWidgetWrapper)viewWidget.getParent().getParent()).setBorderWidth(txtBorderWidth.getText());
 			}
 		});
-		txtBorderWidth.addKeyUpHandler(new KeyUpHandler(){
-			public void onKeyUp(KeyUpEvent event) {
+		txtBorderWidth.addKeyboardListener(new KeyboardListenerAdapter(){
+			public void onKeyUp(Widget sender, char keyCode, int modifiers) {
 				if(widget != null)
 					widget.setBorderWidth(txtBorderWidth.getText());
 				else if(viewWidget != null && viewWidget instanceof DesignGroupWidget)
 					((DesignWidgetWrapper)viewWidget.getParent().getParent()).setBorderWidth(txtBorderWidth.getText());
 			}
 		});
-		lbTextDecoration.addChangeHandler(new ChangeHandler(){
-			public void onChange(ChangeEvent event){
+		lbTextDecoration.addChangeListener(new ChangeListener(){
+			public void onChange(Widget sender){
 				if(widget != null)
 					widget.setTextDecoration(lbTextDecoration.getItemText(lbTextDecoration.getSelectedIndex()));
 			}
 		});
-		lbTextAlign.addChangeHandler(new ChangeHandler(){
-			public void onChange(ChangeEvent event){
+		lbTextAlign.addChangeListener(new ChangeListener(){
+			public void onChange(Widget sender){
 				if(widget != null)
 					widget.setTextAlign(lbTextAlign.getItemText(lbTextAlign.getSelectedIndex()));
 			}
 		});
-		lbFontStyle.addChangeHandler(new ChangeHandler(){
-			public void onChange(ChangeEvent event){
+		lbFontStyle.addChangeListener(new ChangeListener(){
+			public void onChange(Widget sender){
 				if(widget != null)
 					widget.setFontStyle(lbFontStyle.getItemText(lbFontStyle.getSelectedIndex()));
 			}
 		});
-		lbFontWeight.addChangeHandler(new ChangeHandler(){
-			public void onChange(ChangeEvent event){
+		lbFontWeight.addChangeListener(new ChangeListener(){
+			public void onChange(Widget sender){
 				if(widget != null)
 					widget.setFontWeight(lbFontWeight.getItemText(lbFontWeight.getSelectedIndex()));
 			}
 		});
-		lbBorderStyle.addChangeHandler(new ChangeHandler(){
-			public void onChange(ChangeEvent event){
+		lbBorderStyle.addChangeListener(new ChangeListener(){
+			public void onChange(Widget sender){
 				if(widget != null)
 					widget.setBorderStyle(lbBorderStyle.getItemText(lbBorderStyle.getSelectedIndex()));
 				else if(viewWidget != null && viewWidget instanceof DesignGroupWidget)
@@ -784,8 +786,8 @@ public class WidgetPropertiesView extends Composite implements WidgetSelectionLi
 		txtBinding.setText(null);
 		txtHeight.setText(null);
 		txtWidth.setText(null);
-		chkVisible.setValue(false);
-		chkEnabled.setValues(false);
+		chkVisible.setChecked(false);
+		chkEnabled.setChecked(false);
 		sgstBinding.setText(null);
 		txtTop.setText(null);
 		txtLeft.setText(null);*/
@@ -944,8 +946,8 @@ public class WidgetPropertiesView extends Composite implements WidgetSelectionLi
 		txtBinding.setText(null);
 		txtHeight.setText(null);
 		txtWidth.setText(null);
-		chkVisible.setValue(false);
-		chkEnabled.setValue(false);
+		chkVisible.setChecked(false);
+		chkEnabled.setChecked(false);
 		sgstBinding.setText(null);
 		sgstChildBinding.setText(null);
 		txtTop.setText(null);

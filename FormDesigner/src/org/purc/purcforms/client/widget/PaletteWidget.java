@@ -2,25 +2,14 @@ package org.purc.purcforms.client.widget;
 
 import org.purc.purcforms.client.view.FormsTreeView.Images;
 
-import com.google.gwt.event.dom.client.HasAllMouseHandlers;
-import com.google.gwt.event.dom.client.MouseDownEvent;
-import com.google.gwt.event.dom.client.MouseDownHandler;
-import com.google.gwt.event.dom.client.MouseMoveEvent;
-import com.google.gwt.event.dom.client.MouseMoveHandler;
-import com.google.gwt.event.dom.client.MouseOutEvent;
-import com.google.gwt.event.dom.client.MouseOutHandler;
-import com.google.gwt.event.dom.client.MouseOverEvent;
-import com.google.gwt.event.dom.client.MouseOverHandler;
-import com.google.gwt.event.dom.client.MouseUpEvent;
-import com.google.gwt.event.dom.client.MouseUpHandler;
-import com.google.gwt.event.dom.client.MouseWheelEvent;
-import com.google.gwt.event.dom.client.MouseWheelHandler;
-import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.HorizontalPanel;
+import com.google.gwt.user.client.ui.MouseListener;
+import com.google.gwt.user.client.ui.MouseListenerCollection;
+import com.google.gwt.user.client.ui.SourcesMouseEvents;
 
 
 /**
@@ -30,10 +19,14 @@ import com.google.gwt.user.client.ui.HorizontalPanel;
  * @author daniel
  *
  */
-public class PaletteWidget extends Composite implements HasAllMouseHandlers{
+public class PaletteWidget extends Composite implements SourcesMouseEvents{
 
 	/** The name of the widget. e.g TextBox, CheckBox, Label,Button etc */
 	private String name;
+	
+	/** List of mouse listeners. */
+	private MouseListenerCollection mouseListeners;
+
 
 	/**
 	 * Creates a new instance of the palette.
@@ -43,7 +36,7 @@ public class PaletteWidget extends Composite implements HasAllMouseHandlers{
 	 */
 	public PaletteWidget(Images images, HTML html){
 		name = html.getText();
-
+		
 		HorizontalPanel hPanel = new HorizontalPanel();
 		hPanel.setSpacing(5);
 		hPanel.add(images.add().createImage());
@@ -51,35 +44,38 @@ public class PaletteWidget extends Composite implements HasAllMouseHandlers{
 		initWidget(hPanel);
 
 		DOM.sinkEvents(getElement(),DOM.getEventsSunk(getElement()) | Event.MOUSEEVENTS);
-
+		
 		DOM.setStyleAttribute(getElement(), "cursor", "pointer");
 	}
 
-	public HandlerRegistration addMouseDownHandler(MouseDownHandler handler) {
-		return addDomHandler(handler, MouseDownEvent.getType());
+	@Override
+	public void onBrowserEvent(Event event) {
+		int type = DOM.eventGetType(event);
+
+		switch (type) {
+		case Event.ONMOUSEDOWN:
+		case Event.ONMOUSEUP:
+		case Event.ONMOUSEOVER:
+		case Event.ONMOUSEMOVE:
+		case Event.ONMOUSEOUT:
+			if (mouseListeners != null) 
+				mouseListeners.fireMouseEvent(this, event);
+		}
 	}
 
-	public HandlerRegistration addMouseMoveHandler(MouseMoveHandler handler) {
-		return addDomHandler(handler, MouseMoveEvent.getType());
+	public void addMouseListener(MouseListener listener) {
+		if (mouseListeners == null) {
+			mouseListeners = new MouseListenerCollection();
+		}
+		mouseListeners.add(listener);
 	}
 
-	public HandlerRegistration addMouseOutHandler(MouseOutHandler handler) {
-		return addDomHandler(handler, MouseOutEvent.getType());
+	public void removeMouseListener(MouseListener listener) {
+		if (mouseListeners != null) {
+			mouseListeners.remove(listener);
+		}
 	}
-
-	public HandlerRegistration addMouseOverHandler(MouseOverHandler handler) {
-		return addDomHandler(handler, MouseOverEvent.getType());
-	}
-
-	public HandlerRegistration addMouseUpHandler(MouseUpHandler handler) {
-		return addDomHandler(handler, MouseUpEvent.getType());
-	}
-
-	public HandlerRegistration addMouseWheelHandler(MouseWheelHandler handler) {
-		return addDomHandler(handler, MouseWheelEvent.getType());
-	}
-
-
+	
 	/**
 	 * Gets the name of the widget.
 	 * 

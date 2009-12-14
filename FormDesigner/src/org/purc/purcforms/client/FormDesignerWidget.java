@@ -121,7 +121,7 @@ public class FormDesignerWidget extends Composite{
 		dockPanel.add(panel, DockPanel.CENTER);
 		
 		FormUtil.maximizeWidget(dockPanel);
-		//FormUtil.maximizeWidget(hsplitClient);
+		FormUtil.maximizeWidget(hsplitClient);
 
 		initWidget(dockPanel);
 		
@@ -407,23 +407,5 @@ public class FormDesignerWidget extends Composite{
 	 */
 	public void removeLanguageTab(){
 		centerPanel.removeLanguageTab();
-	}
-	
-	public void populateLocales(){
-		toolbar.populateLocales();
-	}
-	
-	public void removeXformSourceTab(){
-		centerPanel.removeXformSourceTab();
-	}
-	
-	
-	public void removeLayoutXmlTab(){
-		centerPanel.removeLayoutXmlTab();
-	}
-	
-	
-	public void removeModelXmlTab(){
-		centerPanel.removeModelXmlTab();
 	}
 }

@@ -6,18 +6,17 @@ import org.purc.purcforms.client.sql.XmlBuilder;
 import org.purc.purcforms.client.util.FormUtil;
 import org.purc.purcforms.client.xforms.XformParser;
 
-import com.google.gwt.event.dom.client.ChangeEvent;
-import com.google.gwt.event.dom.client.ChangeHandler;
-import com.google.gwt.event.logical.shared.ResizeEvent;
-import com.google.gwt.event.logical.shared.ResizeHandler;
-import com.google.gwt.event.logical.shared.SelectionEvent;
-import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.DeferredCommand;
 import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.WindowResizeListener;
+import com.google.gwt.user.client.ui.ChangeListener;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.DecoratedTabPanel;
+import com.google.gwt.user.client.ui.SourcesTabEvents;
+import com.google.gwt.user.client.ui.TabListener;
 import com.google.gwt.user.client.ui.TextArea;
+import com.google.gwt.user.client.ui.Widget;
 
 
 /**
@@ -25,7 +24,7 @@ import com.google.gwt.user.client.ui.TextArea;
  * @author daniel
  *
  */
-public class QueryBuilderView  extends Composite implements SelectionHandler<Integer>,ResizeHandler{
+public class QueryBuilderView  extends Composite implements WindowResizeListener,TabListener{
 
 	private int selectedTabIndex;
 	private DecoratedTabPanel tabs = new DecoratedTabPanel();
@@ -49,12 +48,12 @@ public class QueryBuilderView  extends Composite implements SelectionHandler<Int
 		tabs.add(txtDefXml,"Definition XML");
 		tabs.add(txtSql,"SQL");
 		
-		tabs.addSelectionHandler(this);
+		tabs.addTabListener(this);
 		initWidget(tabs);
 		
 		tabs.selectTab(1);
 		
-		Window.addResizeHandler(this);
+		Window.addWindowResizeListener(this);
 
 		//		This is needed for IE
 		DeferredCommand.addCommand(new Command() {
@@ -63,14 +62,14 @@ public class QueryBuilderView  extends Composite implements SelectionHandler<Int
 			}
 		});
 		
-		txtXform.addChangeHandler(new ChangeHandler(){
-			public void onChange(ChangeEvent event){
+		txtXform.addChangeListener(new ChangeListener(){
+			public void onChange(Widget sender){
 				parseXform();
 			}
 		});
 		
-		txtDefXml.addChangeHandler(new ChangeHandler(){
-			public void onChange(ChangeEvent event){
+		txtDefXml.addChangeListener(new ChangeListener(){
+			public void onChange(Widget sender){
 				parseQueryDef();
 			}
 		});
@@ -81,12 +80,19 @@ public class QueryBuilderView  extends Composite implements SelectionHandler<Int
 		//txtDefXml.setText(getTestQueryDef());
 		//parseQueryDef();
 	}
+	
+	/**
+	 * @see com.google.gwt.user.client.ui.TabListener#onBeforeTabSelected(SourcesTabEvents, int)
+	 */
+	public boolean onBeforeTabSelected(SourcesTabEvents sender, int tabIndex) {
+		return true;
+	}
 
 	/**
-	 * @see com.google.gwt.event.logical.shared.SelectionHandler#onSelection(SelectionEvent)
+	 * @see com.google.gwt.user.client.ui.TabListener#onTabSelected(SourcesTabEvents, int)
 	 */
-	public void onSelection(SelectionEvent<Integer> event){
-		selectedTabIndex = event.getSelectedItem();
+	public void onTabSelected(SourcesTabEvents sender, int tabIndex) {
+		selectedTabIndex = tabIndex;
 		
 		FormUtil.dlg.setText("Building " + (selectedTabIndex == 3 ? "Query Definition" : "SQL")); //LocaleText.get("???????")
 		FormUtil.dlg.center();
@@ -255,15 +261,5 @@ public class QueryBuilderView  extends Composite implements SelectionHandler<Int
 	public void load(){
 		parseXform();
 		parseQueryDef();
-	}
-	
-	public void onResize(ResizeEvent event){
-		onWindowResized(Window.getClientWidth(), Window.getClientHeight());
-	}
-	
-	public void hideDebugTabs(){
-		tabs.remove(0);
-		tabs.remove(2);
-		tabs.remove(2);
 	}
 }

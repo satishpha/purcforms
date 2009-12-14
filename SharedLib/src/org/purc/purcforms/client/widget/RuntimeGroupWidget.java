@@ -17,14 +17,14 @@ import org.purc.purcforms.client.view.FormRunnerView;
 import org.purc.purcforms.client.view.OpenFileDialog;
 import org.purc.purcforms.client.view.FormRunnerView.Images;
 import org.purc.purcforms.client.xforms.XmlUtil;
+import org.zenika.widget.client.datePicker.DatePicker;
 
-import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.http.client.URL;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.AbsolutePanel;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.CheckBox;
+import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlexTable;
 import com.google.gwt.user.client.ui.HTML;
@@ -66,9 +66,9 @@ public class RuntimeGroupWidget extends Composite implements OpenFileDialogEvent
 	private Button btnAdd;
 	private RuntimeWidgetWrapper firstInvalidWidget;
 
-	protected HashMap<QuestionDef,List<Label>> labelMap = new HashMap<QuestionDef,List<Label>>();;
-	protected HashMap<Label,String> labelText = new HashMap<Label,String>();
-	protected HashMap<Label,String> labelReplaceText = new HashMap<Label,String>();
+	protected HashMap<QuestionDef,List<Widget>> labelMap = new HashMap<QuestionDef,List<Widget>>();;
+	protected HashMap<Widget,String> labelText = new HashMap<Widget,String>();
+	protected HashMap<Widget,String> labelReplaceText = new HashMap<Widget,String>();
 
 	protected HashMap<QuestionDef,List<CheckBox>> checkBoxGroupMap = new HashMap<QuestionDef,List<CheckBox>>();
 
@@ -95,19 +95,19 @@ public class RuntimeGroupWidget extends Composite implements OpenFileDialogEvent
 	}
 
 	//TODO The code below needs great refactoring together with PreviewView
-	private RuntimeWidgetWrapper getParentWrapper(Widget widget, Element node, String parentBinding){
-		RuntimeWidgetWrapper parentWrapper = widgetMap.get(parentBinding);
+	private RuntimeWidgetWrapper getParentWrapper(Widget widget, Element node){
+		RuntimeWidgetWrapper parentWrapper = widgetMap.get(node.getAttribute(WidgetEx.WIDGET_PROPERTY_PARENTBINDING));
 		if(parentWrapper == null){
 			QuestionDef qtn = null;
 			if(repeatQtnsDef != null)
-				qtn = repeatQtnsDef.getQuestion(parentBinding);
+				qtn = repeatQtnsDef.getQuestion(node.getAttribute(WidgetEx.WIDGET_PROPERTY_PARENTBINDING));
 			else
-				qtn = formDef.getQuestion(parentBinding);
+				qtn = formDef.getQuestion(node.getAttribute(WidgetEx.WIDGET_PROPERTY_PARENTBINDING));
 
 			if(qtn != null){
 				parentWrapper = new RuntimeWidgetWrapper(widget,images.error(),editListener);
 				parentWrapper.setQuestionDef(qtn,true);
-				widgetMap.put(parentBinding, parentWrapper);
+				widgetMap.put(node.getAttribute(WidgetEx.WIDGET_PROPERTY_PARENTBINDING), parentWrapper);
 				//addWidget(parentWrapper); //Misplaces first widget (with tabindex > 0) of a group (CheckBox and RadioButtons)
 
 				qtn.addChangeListener(this);
@@ -182,9 +182,9 @@ public class RuntimeGroupWidget extends Composite implements OpenFileDialogEvent
 
 	private void addDeleteButton(int row){
 		PushButton btn = new PushButton(LocaleText.get("deleteItem"));
-		btn.addClickHandler(new ClickHandler(){
-			public void onClick(ClickEvent event){
-				removeRow((Widget)event.getSource());
+		btn.addClickListener(new ClickListener(){
+			public void onClick(Widget sender){
+				removeRow(sender);
 			}
 		});
 		table.setWidget(row, widgets.size(), btn);
@@ -228,8 +228,7 @@ public class RuntimeGroupWidget extends Composite implements OpenFileDialogEvent
 
 		QuestionDef questionDef = null;
 		String binding = node.getAttribute(WidgetEx.WIDGET_PROPERTY_BINDING);
-		String parentBinding = node.getAttribute(WidgetEx.WIDGET_PROPERTY_PARENTBINDING);
-		
+
 		if(isRepeated){
 			if(binding != null && binding.trim().length() > 0 && repeatQtnsDef != null){
 				questionDef = repeatQtnsDef.getQuestion(binding);
@@ -249,50 +248,46 @@ public class RuntimeGroupWidget extends Composite implements OpenFileDialogEvent
 		boolean wrapperSet = false;
 		Widget widget = null;
 		if(s.equalsIgnoreCase(WidgetEx.WIDGET_TYPE_RADIOBUTTON)){
-			/*widget = new RadioButton(parentBinding,node.getAttribute(WidgetEx.WIDGET_PROPERTY_TEXT));
+			/*widget = new RadioButton(node.getAttribute(WidgetEx.WIDGET_PROPERTY_PARENTBINDING),node.getAttribute(WidgetEx.WIDGET_PROPERTY_TEXT));
 			parentWrapper = getParentWrapper(widget,node);
 			((RadioButton)widget).setTabIndex(tabIndex);*/
 
-			widget = new RadioButtonWidget(parentBinding,node.getAttribute(WidgetEx.WIDGET_PROPERTY_TEXT));
+			widget = new RadioButton(node.getAttribute(WidgetEx.WIDGET_PROPERTY_PARENTBINDING),node.getAttribute(WidgetEx.WIDGET_PROPERTY_TEXT));
 
-			if(widgetMap.get(parentBinding) == null)
+			if(widgetMap.get(node.getAttribute(WidgetEx.WIDGET_PROPERTY_PARENTBINDING)) == null)
 				wrapperSet = true;
 
-			parentWrapper = getParentWrapper(widget,node,parentBinding);
+			parentWrapper = getParentWrapper(widget,node);
 			((RadioButton)widget).setTabIndex(tabIndex);
-			
-			if(wrapperSet){
+
+			if(wrapperSet)
 				wrapper = parentWrapper;
-				questionDef = formDef.getQuestion(parentBinding);
-			}
 		}
 		else if(s.equalsIgnoreCase(WidgetEx.WIDGET_TYPE_CHECKBOX)){
 			/*widget = new CheckBox(node.getAttribute(WidgetEx.WIDGET_PROPERTY_TEXT));
 			parentWrapper = getParentWrapper(widget,node);
 			((CheckBox)widget).setTabIndex(tabIndex);*/
 
-			widget = new CheckBoxWidget(node.getAttribute(WidgetEx.WIDGET_PROPERTY_TEXT));
-			if(widgetMap.get(parentBinding) == null)
+			widget = new CheckBox(node.getAttribute(WidgetEx.WIDGET_PROPERTY_TEXT));
+			if(widgetMap.get(node.getAttribute(WidgetEx.WIDGET_PROPERTY_PARENTBINDING)) == null)
 				wrapperSet = true;
 
-			parentWrapper = getParentWrapper(widget,node,parentBinding);
+			parentWrapper = getParentWrapper(widget,node);
 			((CheckBox)widget).setTabIndex(tabIndex);
 
 			String defaultValue = parentWrapper.getQuestionDef().getDefaultValue();
 			if(defaultValue != null && defaultValue.contains(binding))
-				((CheckBox)widget).setValue(true);
+				((CheckBox)widget).setChecked(true);
 
-			if(wrapperSet){
+			if(wrapperSet)
 				wrapper = parentWrapper;
-				questionDef = formDef.getQuestion(parentBinding);
-			}
 		}
 		else if(s.equalsIgnoreCase(WidgetEx.WIDGET_TYPE_BUTTON)){
 			widget = new Button(node.getAttribute(WidgetEx.WIDGET_PROPERTY_TEXT));
 			((Button)widget).setTabIndex(tabIndex);
 		}
 		else if(s.equalsIgnoreCase(WidgetEx.WIDGET_TYPE_LISTBOX)){
-			widget = new ListBoxWidget(false);
+			widget = new ListBox(false);
 			((ListBox)widget).setTabIndex(tabIndex);
 		}
 		else if(s.equalsIgnoreCase(WidgetEx.WIDGET_TYPE_TEXTAREA)){
@@ -301,15 +296,12 @@ public class RuntimeGroupWidget extends Composite implements OpenFileDialogEvent
 		}
 		else if(s.equalsIgnoreCase(WidgetEx.WIDGET_TYPE_DATEPICKER)){
 			widget = new DatePickerWidget();
-			((DatePickerEx)widget).setTabIndex(tabIndex);
-		}
-		else if(s.equalsIgnoreCase(WidgetEx.WIDGET_TYPE_DATETIME)){
-			widget = new DateTimeWidget();
-			((DateTimeWidget)widget).setTabIndex(tabIndex);
-		}
-		else if(s.equalsIgnoreCase(WidgetEx.WIDGET_TYPE_TIME)){
-			widget = new TimeWidget();
-			((TimeWidget)widget).setTabIndex(tabIndex);
+			((DatePicker)widget).setTabIndex(tabIndex);
+			/*((DatePicker)widget).addFocusListener(new FocusListenerAdapter(){
+				 public void onLostFocus(Widget sender){
+					 //((DatePicker)sender).selectAll();
+				 }
+			 });*/
 		}
 		else if(s.equalsIgnoreCase(WidgetEx.WIDGET_TYPE_TEXTBOX)){
 			widget = new TextBox();
@@ -326,20 +318,20 @@ public class RuntimeGroupWidget extends Composite implements OpenFileDialogEvent
 			int pos2 = text.indexOf("}$");
 			if(pos1 > -1 && pos2 > -1 && (pos2 > pos1)){
 				String varname = text.substring(pos1+2,pos2);
-				labelText.put((Label)widget, text);
-				labelReplaceText.put((Label)widget, "${"+varname+"}$");
+				labelText.put(widget, text);
+				labelReplaceText.put(widget, "${"+varname+"}$");
 
 				((Label)widget).setText(text.replace("${"+varname+"}$", ""));
 				if(varname.startsWith("/"+ formDef.getVariableName()+"/"))
 					varname = varname.substring(("/"+ formDef.getVariableName()+"/").length(),varname.length());
 
 				QuestionDef qtnDef = formDef.getQuestion(varname);
-				List<Label> labels = labelMap.get(qtnDef);
+				List<Widget> labels = labelMap.get(qtnDef);
 				if(labels == null){
-					labels = new ArrayList<Label>();
+					labels = new ArrayList<Widget>();
 					labelMap.put(qtnDef, labels);
 				}
-				labels.add((Label)widget);
+				labels.add(widget);
 			}
 		}
 		else if(s.equalsIgnoreCase(WidgetEx.WIDGET_TYPE_IMAGE)){
@@ -388,25 +380,15 @@ public class RuntimeGroupWidget extends Composite implements OpenFileDialogEvent
 		}
 
 		/*else if(s.equalsIgnoreCase(WidgetEx.WIDGET_TYPE_REPEATSECTION)){
-			//Not dealing with nested repeats
+			//Not dealing with nexted repeats
 			//widget = new RunTimeGroupWidget();
 			//((RunTimeGroupWidget)widget).setTabIndex(tabIndex);
 		}*/
 		else
 			return tabIndex;
 
-		if(!wrapperSet){
+		if(!wrapperSet)
 			wrapper = new RuntimeWidgetWrapper(widget,images.error(),editListener);
-			
-			if(parentWrapper != null){ //Check box or radio button
-				if(!parentWrapper.getQuestionDef().isVisible())
-					wrapper.setVisible(false);
-				if(!parentWrapper.getQuestionDef().isEnabled())
-					wrapper.setEnabled(false);
-				if(parentWrapper.getQuestionDef().isLocked())
-					wrapper.setLocked(true);
-			}
-		}
 
 		//RuntimeWidgetWrapper wrapper = new RuntimeWidgetWrapper(widget,images.error(),editListener);
 		boolean loadWidget = true;
@@ -427,9 +409,6 @@ public class RuntimeGroupWidget extends Composite implements OpenFileDialogEvent
 
 		if(binding != null)
 			wrapper.setBinding(binding);
-		
-		if(parentBinding != null)
-			wrapper.setParentBinding(parentBinding);
 
 		if(parentWrapper != null)
 			parentWrapper.addChildWidget(wrapper);
@@ -487,7 +466,7 @@ public class RuntimeGroupWidget extends Composite implements OpenFileDialogEvent
 		WidgetEx.loadLabelProperties(node,wrapper);
 
 		wrapper.setTabIndex(tabIndex);
-		//wrapper.setParentBinding(parentBinding);
+		wrapper.setParentBinding(node.getAttribute(WidgetEx.WIDGET_PROPERTY_PARENTBINDING));
 
 		if(tabIndex > 0 && !(wrapper.getWrappedWidget() instanceof Button))
 			widgets.put(new Integer(tabIndex), wrapper);
@@ -498,13 +477,13 @@ public class RuntimeGroupWidget extends Composite implements OpenFileDialogEvent
 			;//FormUtil.setWidgetPosition(wrapper,left,top);
 
 		if(widget instanceof Button && binding != null){
-			//wrapper.setParentBinding(parentBinding);
+			//wrapper.setParentBinding(node.getAttribute(WidgetEx.WIDGET_PROPERTY_PARENTBINDING));
 
 			if(binding.equals("addnew")||binding.equals("remove") || binding.equals("submit") ||
 					binding.equals("browse")||binding.equals("clear")||binding.equals("cancel")||binding.equals("search")){
-				((Button)widget).addClickHandler(new ClickHandler(){
-					public void onClick(ClickEvent event){
-						execute((Widget)event.getSource());
+				((Button)widget).addClickListener(new ClickListener(){
+					public void onClick(Widget sender){
+						execute(sender);
 					}
 				});
 			}
@@ -628,8 +607,6 @@ public class RuntimeGroupWidget extends Composite implements OpenFileDialogEvent
 			}
 			else if(binding.equalsIgnoreCase("browse")){
 				RuntimeWidgetWrapper wrapper = getCurrentMultimediWrapper(sender);
-				if(wrapper == null)
-					return;
 
 				if(wrapper.getWrappedWidget() instanceof Image)
 					image = (Image)wrapper.getWrappedWidget();
@@ -984,7 +961,6 @@ public class RuntimeGroupWidget extends Composite implements OpenFileDialogEvent
 	}
 
 	public boolean onMoveToNextWidget(Widget widget) {
-		//TODO Handle tabbing for repeats within the flex table
 		int index = selectedPanel.getWidgetIndex(widget);
 		return moveToNextWidget(index);
 	}
@@ -1008,15 +984,15 @@ public class RuntimeGroupWidget extends Composite implements OpenFileDialogEvent
 		return false;
 	}
 
-	public HashMap<QuestionDef,List<Label>> getLabelMap(){
+	public HashMap<QuestionDef,List<Widget>> getLabelMap(){
 		return labelMap;
 	}
 
-	public HashMap<Label,String> getLabelText(){
+	public HashMap<Widget,String> getLabelText(){
 		return labelText;
 	}
 
-	public HashMap<Label,String> getLabelReplaceText(){
+	public HashMap<Widget,String> getLabelReplaceText(){
 		return labelReplaceText;
 	}
 
@@ -1032,7 +1008,7 @@ public class RuntimeGroupWidget extends Composite implements OpenFileDialogEvent
 		for(CheckBox checkBox : list){
 			checkBox.setEnabled(enabled);
 			if(!enabled)
-				checkBox.setValue(false);
+				checkBox.setChecked(false);
 		}
 	}
 
@@ -1044,7 +1020,7 @@ public class RuntimeGroupWidget extends Composite implements OpenFileDialogEvent
 		for(CheckBox checkBox : list){
 			checkBox.setVisible(visible);
 			if(!visible)
-				checkBox.setValue(false);
+				checkBox.setChecked(false);
 		}
 	}
 
