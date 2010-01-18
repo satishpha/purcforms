@@ -106,7 +106,7 @@ public class PreviewView extends FormRunnerView {
 
 			saveValues();
 
-			if(!isValid())
+			if(!isValid(false))
 				return;
 
 			String xml = XformUtil.getInstanceDataDoc(formDef.getDoc()).toString();

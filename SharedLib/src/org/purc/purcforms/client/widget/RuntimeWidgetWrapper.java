@@ -375,8 +375,9 @@ public class RuntimeWidgetWrapper extends WidgetEx implements QuestionChangeList
 		if(questionDef.getDataType() == QuestionDef.QTN_TYPE_REPEAT)
 			questionDef.setAnswer("0");
 
-		isValid();
-
+		//TODO Looks like this should be at the end after all widgets are loaded
+		//isValid();
+		
 		if(!questionDef.isEnabled())
 			setEnabled(false);
 		if(!questionDef.isVisible())

@@ -147,12 +147,13 @@ public class RuntimeGroupWidget extends Composite implements OpenFileDialogEvent
 				addWidget(widget);
 		}
 
-		if(isRepeated){
+		if(isRepeated){			
 			RuntimeWidgetWrapper widget = this.widgets.get(0);
 			if(!(widget.getQuestionDef() == null || widget.getQuestionDef().getDataNode() == null)){
 				Element dataNode = (Element)widget.getQuestionDef().getDataNode().getParentNode();
 				Element parent = (Element)dataNode.getParentNode();
-				NodeList nodeList = parent.getElementsByTagName(dataNode.getNodeName());
+				
+				NodeList nodeList = parent.getElementsByTagName(dataNode.getNodeName());				
 				for(int index = 1; index < nodeList.getLength(); index++)
 					addNewRow((Element)nodeList.item(index));
 			}
