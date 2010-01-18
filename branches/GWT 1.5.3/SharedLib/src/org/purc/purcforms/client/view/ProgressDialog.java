@@ -47,7 +47,9 @@ public class ProgressDialog extends DialogBox{
 	public void center(String progressMsg){
 		if(progressMsg == null)
 			center();
-		else
+		else{
 			label.setText(progressMsg);
+			super.center();
+		}
 	}
 }

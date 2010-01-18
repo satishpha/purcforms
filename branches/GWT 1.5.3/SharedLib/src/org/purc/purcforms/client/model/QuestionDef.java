@@ -733,6 +733,12 @@ public class QuestionDef implements Serializable{
 				node.setAttribute(XformConstants.ATTRIBUTE_NAME_VISIBLE,XformConstants.XPATH_VALUE_FALSE);
 			else
 				node.removeAttribute(XformConstants.ATTRIBUTE_NAME_VISIBLE);
+			
+			
+			if(!(dataType == QuestionDef.QTN_TYPE_IMAGE || dataType == QuestionDef.QTN_TYPE_AUDIO ||
+					dataType == QuestionDef.QTN_TYPE_VIDEO || dataType == QuestionDef.QTN_TYPE_GPS))
+				node.removeAttribute(XformConstants.ATTRIBUTE_NAME_FORMAT);
+
 
 			if(dataNode != null)
 				updateDataNode(doc,formDef,orgFormVarName);

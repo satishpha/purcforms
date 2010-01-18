@@ -262,4 +262,10 @@ public class QueryBuilderView  extends Composite implements WindowResizeListener
 		parseXform();
 		parseQueryDef();
 	}
+	
+	public void hideDebugTabs(){
+		tabs.remove(0);
+		tabs.remove(2);
+		tabs.remove(2);
+	}
 }

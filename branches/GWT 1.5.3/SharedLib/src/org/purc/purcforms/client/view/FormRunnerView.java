@@ -184,11 +184,12 @@ public class FormRunnerView extends Composite implements /*WindowResizeListener,
 
 		tabs.clear();
 		if(formDef == null || layoutXml == null || layoutXml.trim().length() == 0){
-			addNewTab("Page1");
+			addNewTab(LocaleText.get("page")+"1");
 			return;
 		}
 		
 		loadLayout(layoutXml,externalSourceWidgets);
+		isValid(true);
 		moveToFirstWidget();
 	}
 
@@ -651,7 +652,7 @@ public class FormRunnerView extends Composite implements /*WindowResizeListener,
 
 		saveValues();
 
-		if(!isValid())
+		if(!isValid(false))
 			return;
 
 		String xml = XformUtil.getInstanceDataDoc(formDef.getDoc()).toString();
@@ -663,14 +664,15 @@ public class FormRunnerView extends Composite implements /*WindowResizeListener,
 	/**
 	 * Checks if form data has validation errors.
 	 * 
+	 * @param fireValueChanged set to true to fire the value changed event, else false.
 	 * @return true if form has no validation errors, else false.
 	 */
-	protected boolean isValid(){
+	protected boolean isValid(boolean fireValueChanged){
 		boolean valid = true;
 		int pageNo = -1;
 		firstInvalidWidget = null;
 		for(int index=0; index<tabs.getWidgetCount(); index++){
-			if(!isValid((AbsolutePanel)tabs.getWidget(index))){
+			if(!isValid((AbsolutePanel)tabs.getWidget(index),fireValueChanged)){
 				valid = false;
 				if(pageNo == -1)
 					pageNo = index;
@@ -690,9 +692,10 @@ public class FormRunnerView extends Composite implements /*WindowResizeListener,
 	 * Checks if widgets on a panel or page have validation errors.
 	 * 
 	 * @param panel the panel whose widgets to check.
+	 * @param fireValueChanged set to true to fire the value changed event, else false.
 	 * @return true if the panel widgets have no errors, else false.
 	 */
-	private boolean isValid(AbsolutePanel panel){
+	private boolean isValid(AbsolutePanel panel,boolean fireValueChanged){
 		boolean valid = true;
 		for(int index=0; index<panel.getWidgetCount(); index++){
 			RuntimeWidgetWrapper widget = (RuntimeWidgetWrapper)panel.getWidget(index);
@@ -701,6 +704,9 @@ public class FormRunnerView extends Composite implements /*WindowResizeListener,
 				if(firstInvalidWidget == null && widget.isFocusable())
 					firstInvalidWidget = widget.getInvalidWidget();
 			}
+			
+			if(fireValueChanged && widget.getQuestionDef() != null)
+				onValueChanged(widget);
 		}
 		return valid;
 	}
