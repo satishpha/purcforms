@@ -349,6 +349,7 @@ public class QuestionDef implements Serializable{
 		}
 	}
 
+	
 	public boolean isRequired() {
 		return required;
 	}

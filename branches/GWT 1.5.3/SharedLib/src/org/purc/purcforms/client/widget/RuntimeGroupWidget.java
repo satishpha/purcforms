@@ -60,6 +60,7 @@ public class RuntimeGroupWidget extends Composite implements OpenFileDialogEvent
 	private List<Element> dataNodes = new ArrayList<Element>();
 	private AbsolutePanel selectedPanel = new AbsolutePanel();
 	private boolean isRepeated = false;
+	private boolean isLocked = false;
 	private Image image;
 	private HTML html;
 	private FormDef formDef;
@@ -94,6 +95,30 @@ public class RuntimeGroupWidget extends Composite implements OpenFileDialogEvent
 		this.addStyleName("purcforms-repeat-border");
 	}
 
+	
+
+	public RuntimeGroupWidget(Images images,FormDef formDef,RepeatQtnsDef repeatQtnsDef,EditListener editListener, boolean isRepeated, boolean isLocked){
+		this.images = images;
+		this.formDef = formDef;
+		this.repeatQtnsDef = repeatQtnsDef;
+		this.editListener = editListener;
+		this.isRepeated = isRepeated;
+		this.isLocked = isLocked;
+
+		if(isRepeated){
+			table = new FlexTable();
+			FormUtil.maximizeWidget(table);		
+			verticalPanel.add(table);
+			initWidget(verticalPanel);
+		}
+		else
+			initWidget(selectedPanel);
+		//setupEventListeners();
+
+		//table.setStyleName("cw-FlexTable");
+		this.addStyleName("purcforms-repeat-border");
+	}
+	
 	//TODO The code below needs great refactoring together with PreviewView
 	private RuntimeWidgetWrapper getParentWrapper(Widget widget, Element node){
 		RuntimeWidgetWrapper parentWrapper = widgetMap.get(node.getAttribute(WidgetEx.WIDGET_PROPERTY_PARENTBINDING));
@@ -126,11 +151,25 @@ public class RuntimeGroupWidget extends Composite implements OpenFileDialogEvent
 		HashMap<Integer,RuntimeWidgetWrapper> widgets = new HashMap<Integer,RuntimeWidgetWrapper>();
 		int maxTabIndex = 0;
 
+		//set the locked flag at this point, such that it can be used globally in this class round.
+		
 		for(int i=0; i<nodes.getLength(); i++){
 			if(nodes.item(i).getNodeType() != Node.ELEMENT_NODE)
 				continue;
 			try{
+				
 				Element node = (Element)nodes.item(i);
+				//=========
+				String qtnBinding = "";
+				qtnBinding = node.getAttribute(WidgetEx.WIDGET_PROPERTY_BINDING);
+				QuestionDef qtn = null;
+				qtn = formDef.getQuestion(qtnBinding);
+				if(qtn != null){
+					
+					isLocked = qtn.isLocked();
+					
+				}
+				//=============
 				int index = loadWidget(formDef,node,widgets,externalSourceWidgets);
 				if(index > maxTabIndex)
 					maxTabIndex = index;
@@ -286,6 +325,13 @@ public class RuntimeGroupWidget extends Composite implements OpenFileDialogEvent
 		else if(s.equalsIgnoreCase(WidgetEx.WIDGET_TYPE_BUTTON)){
 			widget = new Button(node.getAttribute(WidgetEx.WIDGET_PROPERTY_TEXT));
 			((Button)widget).setTabIndex(tabIndex);
+			
+			//questionDef = (QuestionDef)formDef.getQuestion(binding);
+			//isLocked = questionDef.isLocked();
+		   if(isLocked == true ){ 
+			   if(binding.equalsIgnoreCase("browse") || binding.equalsIgnoreCase("clear"))
+				   ((Button)widget).setEnabled(false);//------------------------------simon's fix--------------------
+		   }
 		}
 		else if(s.equalsIgnoreCase(WidgetEx.WIDGET_TYPE_LISTBOX)){
 			widget = new ListBox(false);
@@ -374,6 +420,9 @@ public class RuntimeGroupWidget extends Composite implements OpenFileDialogEvent
 
 			widget = new RuntimeGroupWidget(images,formDef,repeatQtnsDef,editListener,repeated);
 			((RuntimeGroupWidget)widget).loadWidgets(formDef,node.getChildNodes(),externalSourceWidgets);
+			
+		
+			
 			/*getLabelMap(((RuntimeGroupWidget)widget).getLabelMap());
 			getLabelText(((RuntimeGroupWidget)widget).getLabelText());
 			getLabelReplaceText(((RuntimeGroupWidget)widget).getLabelReplaceText());
@@ -802,6 +851,7 @@ public class RuntimeGroupWidget extends Composite implements OpenFileDialogEvent
 	}
 
 	public void setLocked(boolean locked){
+		this.isLocked = locked;
 		if(isRepeated){
 			HorizontalPanel panel = (HorizontalPanel)verticalPanel.getWidget(1);
 			for(int index = 0; index < panel.getWidgetCount(); index++)
