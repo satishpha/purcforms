@@ -450,8 +450,18 @@ public class RuntimeWidgetWrapper extends WidgetEx implements QuestionChangeList
 	public void setLocked(boolean locked){
 		this.locked = locked;
 
-		if(widget instanceof RuntimeGroupWidget)
+		if(widget instanceof RuntimeGroupWidget){
 			((RuntimeGroupWidget)widget).setLocked(locked);
+		}
+		
+		else if(widget instanceof ListBox){
+			((ListBox)widget).setEnabled(false);
+			
+		}
+		/*else if(widget instanceof CheckBox){
+		     ((CheckBox)widget).setEnabled(false);	
+		}*/
+	
 	}
 
 	/**

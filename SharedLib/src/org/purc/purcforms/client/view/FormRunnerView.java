@@ -91,6 +91,9 @@ public class FormRunnerView extends Composite implements /*WindowResizeListener,
 	/** Reference to the form definition. */
 	protected FormDef formDef;
 	
+	/** Flag thats a field is locked */
+	private boolean isLocked = false;
+	
 	/** Listener to form submit events. */
 	protected SubmitListener submitListener;
 	
@@ -345,12 +348,15 @@ public class FormRunnerView extends Composite implements /*WindowResizeListener,
 		QuestionDef questionDef = null;
 		String binding = node.getAttribute(WidgetEx.WIDGET_PROPERTY_BINDING);
 		String parentBinding = node.getAttribute(WidgetEx.WIDGET_PROPERTY_PARENTBINDING);
+		
 		if(binding != null && binding.trim().length() > 0){
 			questionDef = formDef.getQuestion(binding);
+			
 			if(questionDef != null)
 				questionDef.setAnswer(questionDef.getDefaultValue()); //Just incase we are refreshing and had already set the answer
 		}
 
+		
 		RuntimeWidgetWrapper wrapper = null;
 		boolean wrapperSet = false;
 		Widget widget = null;
@@ -378,6 +384,16 @@ public class FormRunnerView extends Composite implements /*WindowResizeListener,
 			if(defaultValue != null && defaultValue.contains(binding))
 				((CheckBox)widget).setChecked(true);
 
+			QuestionDef qtn = null;
+			qtn = formDef.getQuestion(parentBinding);
+			boolean isLocked = false;
+			if(qtn != null){
+				isLocked = qtn.isLocked();
+				if(isLocked)
+					((CheckBox)widget).setEnabled(false);
+			}
+			
+			
 			if(wrapperSet)
 				wrapper = parentWrapper;
 		}
@@ -388,6 +404,7 @@ public class FormRunnerView extends Composite implements /*WindowResizeListener,
 		else if(s.equalsIgnoreCase(WidgetEx.WIDGET_TYPE_LISTBOX)){
 			widget = new ListBox(false);
 			((ListBox)widget).setTabIndex(tabIndex);
+			//((ListBox)widget).setEnabled(false);
 		}
 		else if(s.equalsIgnoreCase(WidgetEx.WIDGET_TYPE_TEXTAREA)){
 			widget = new TextArea();
@@ -433,13 +450,26 @@ public class FormRunnerView extends Composite implements /*WindowResizeListener,
 			if(questionDef != null)
 				repeatQtnsDef = questionDef.getRepeatQtnsDef();
 
+		
 			boolean repeated = false;
 			String value = node.getAttribute(WidgetEx.WIDGET_PROPERTY_REPEATED);
 			if(value != null && value.trim().length() > 0)
 				repeated = (value.equals(WidgetEx.REPEATED_TRUE_VALUE));
-
+             
+			
 			widget = new RuntimeGroupWidget(images,formDef,repeatQtnsDef,this,repeated);
 			((RuntimeGroupWidget)widget).loadWidgets(formDef,node.getChildNodes(),externalSourceWidgets);
+			
+			/*if(s.equalsIgnoreCase(WidgetEx.WIDGET_TYPE_GROUPBOX))
+			{
+				boolean isLocked = questionDef.isLocked();
+				widget = new RuntimeGroupWidget(images,formDef,repeatQtnsDef,this,repeated, isLocked);
+				((RuntimeGroupWidget)widget).loadWidgets(formDef,node.getChildNodes(),externalSourceWidgets);
+			}else{
+				widget = new RuntimeGroupWidget(images,formDef,repeatQtnsDef,this,repeated);
+				((RuntimeGroupWidget)widget).loadWidgets(formDef,node.getChildNodes(),externalSourceWidgets);
+			}*/
+			
 			//((RuntimeGroupWidget)widget).setTabIndex(tabIndex);
 			getLabelMap(((RuntimeGroupWidget)widget).getLabelMap());
 			getLabelText(((RuntimeGroupWidget)widget).getLabelText());

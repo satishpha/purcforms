@@ -210,6 +210,7 @@ public class WidgetPropertiesView extends Composite implements WidgetSelectionLi
 		table.setWidget(++index, 1,txtHeight);
 		table.setWidget(++index, 1, chkEnabled);
 		table.setWidget(++index, 1, chkVisible);
+		
 		table.setWidget(++index, 1, txtLeft);
 		table.setWidget(++index, 1, txtTop);
 		table.setWidget(++index, 1, txtTabIndex);
