@@ -12,11 +12,37 @@ This document contains instructions on how to setup the development environment 
   * Import the four projects into eclipse. These projects are in the folders: SharedLib, FormDesigner, FormRunner and QueryBuilder.
   
 
-Purcforms is currently using GWT version 1.5.3 and the necessary GWT files are already part of your check out.
-If you have any other version of GWT as a plugin in your eclipse, you may get problems while trying to run any of these projects. If that's your case, you may need to first uninstall the plugin.
+Purcforms trunk is currently using GWT version 2.0 and the necessary GWT files are already part of your check out.
+If you have any other version of GWT as a plugin in your eclipse, you may get problems while trying to run any of these projects. If that's your case, you may need to first uninstall the plugin. We also have branches for purcforms using GWT 1.5.3 and GWT 1.7
+
+= With GWT version 2.0 (trunk) =
+
+== Running ==
+
+To run the Form Designer, right click the project and select Run As, then under the eclipse run configurations, run the configuration called FormDesigner.
+
+To run the Query Builder, right click the project and select Run As, then under the eclipse run configurations, run the configuration called QueryBuilder.
+
+The Form Runner is not useful to run on its own. It needs to be embedded in another application for you to have meaningful results.
+
+You could also run the ant target called "dev" in the ant build file in each project.
+
+You can run in debug mode by right clicking a project and instead of Run As, select Debug As, then select the appropriate configuration.
 
 
-= Running =
+== Compiling to JavaScript ==
+
+To compile the Form Designer project into JavaScript, run the ant target called "dev" in the ant build file under the FormDesigner folder.
+
+To compile the Query Builder project into JavaScript, run the ant target called "dev" in the ant build file under the QueryBuilder folder.
+
+
+To compile the Form Runner project into JavaScript, run the ant target called "dev" in the ant build file under the FormRunner folder.
+
+
+= With GWT versions 1.5.3 and 1.7 =
+
+== Running ==
 
 To run the Form Designer, right click the project and select Run As, then under the eclipse run configurations, run the configuration called FormDesigner.
 
@@ -28,7 +54,7 @@ The Form Runner is not useful to run on its own. It needs to be embedded in anot
 You can run in debug mode by right clicking a project and instead of Run As, select Debug As, then select the appropriate configuration.
 
 
-= Compiling to JavaScript =
+== Compiling to JavaScript ==
 
 To compile the Form Designer project into JavaScript, run or double click the file "FormDesigner-compile.cmd" which is in the FormDesigner folder. The output files will be under www/org.purc.purcforms.FormDesigner
 
