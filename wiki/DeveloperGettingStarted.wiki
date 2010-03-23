@@ -16,6 +16,8 @@ Purcforms trunk is currently using GWT version 2.0 and the necessary GWT files a
 If you have any other version of GWT as a plugin in your eclipse, you may get problems while trying to run any of these projects. If that's your case, you may need to first uninstall the plugin. We also have branches for purcforms using GWT 1.5.3 and GWT 1.7
 
 
+
+
 = With GWT version 2.0 (trunk) =
 
 
@@ -40,6 +42,8 @@ To compile the Query Builder project into JavaScript, run the ant target called 
 
 
 To compile the Form Runner project into JavaScript, run the ant target called "dev" in the ant build file under the FormRunner folder.
+
+
 
 
 = With GWT versions 1.5.3 and 1.7 =
