@@ -1,4 +1,4 @@
-#summary One-sentence summary of this page.
+#summary Some tips and tricks for development with Purcforms
 
 = Introduction =
 
